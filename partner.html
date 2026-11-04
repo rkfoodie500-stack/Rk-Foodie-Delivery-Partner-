@@ -79,7 +79,7 @@ async function toggleOnline(){if(!online){if(!navigator.geolocation)return msg('
 let knownOrderIds=new Set(),ordersInitialized=false,ringtoneAudio=null,audioUnlocked=false,orderAudioContext=null;
 
 const RK_RINGTONE_AUDIO={alarm:'alarm.mp3',ring2:'ringtone2.mp3',ring3:'ring3.mp3'};
-const RK_RINGTONE_NAMES={alarm:'Alarm Ringtone Music',ring2:'rrrrrrrrrrrr',ring3:'ring 💍 ring'};
+const RK_RINGTONE_NAMES={alarm:'Alarm Ringtone 💐🎀',ring2:'good morning☀️',ring3:'alert 🎵🎶'};
 function loadRingtoneSettings(){
  const preset=localStorage.getItem('rk_partner_ringtone_preset')||'alarm';
  $('ringtonePreset').value=RK_RINGTONE_AUDIO[preset]?preset:'alarm';
