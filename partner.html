@@ -131,7 +131,7 @@ async function syncMissingJobItems(rows){
 async function loadJobs(){rkPartnerRouteMaps.forEach(s=>{if(s.timer)clearInterval(s.timer);if(s.map)s.map.remove()});rkPartnerRouteMaps.clear();const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent=error.message;return}jobRows=await syncMissingJobItems(data||[]);const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';active.filter(x=>x.status==='picked_up').forEach(x=>initPartnerRouteMap(x));const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jobItemsMarkup(x){const items=slipItems(x);if(!items.length)return '<div class="job-items muted">খাবারের তালিকা অর্ডার রেকর্ড থেকে পাওয়া যায়নি। অর্ডারটি Sync করুন অথবা Admin-কে জানান।</div>';return `<div class="job-items"><b>অর্ডারের খাবার</b><ul>${items.map(i=>`<li>${esc(i.title)} × ${i.quantity} — ${money(i.price*i.quantity)}</li>`).join('')}</ul></div>`}
-function jobCard(x){let actions='';if(x.status==='assigned')actions=`<button onclick="jobAction('${x.id}','accepted')">অর্ডার গ্রহণ</button>`;if(x.status==='accepted')actions=`<button onclick="jobAction('${x.id}','picked_up')">খাবার সংগ্রহ করেছি</button>`;if(x.status==='picked_up')actions=`<button onclick="jobAction('${x.id}','delivered')">কাস্টমারকে দিয়ে ডেলিভারি সম্পন্ন</button>`;if(x.status==='delivered')actions=`<button onclick="printJobSlip('${x.id}')">কাস্টমারকে স্লিপ দিন / প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button>`;return `<div class="order"><div class="row between"><h3>${esc(x.order_number)}</h3><span class="pill">${esc(x.status)}</span></div><b>${esc(x.customer_name||'কাস্টমার')}</b><p class="muted">${esc(x.customer_phone||'')}<br>${esc(x.delivery_address||'ঠিকানা নেই')}</p>${jobItemsMarkup(x)}<div class="row between"><b>মোট: ${money(x.order_total)}</b><span class="muted">${esc(x.payment_mode||'')}</span></div><div class="row between"><b>ডেলিভারি চার্জ: ${money(x.delivery_fee)}</b></div>${x.status==='picked_up'?`<div id="rkRouteStatus${x.id}" class="muted topspace">কাস্টমারের GPS লোকেশন পাওয়া গেলে রাস্তার রুট দেখাবে।</div><div id="map${x.id}" class="topspace" style="height:260px;border-radius:14px;overflow:hidden"></div><div class="rk-map-legend"><span><i class="rk-dot rk-customer"></i> Customer location</span><span><i class="rk-dot rk-partner"></i> Your live location</span><span><i class="rk-route-swatch"></i> Road route to customer</span></div>`:''}<div class="row topspace">${actions}<button class="secondary" onclick="navigateTo('${encodeURIComponent(x.delivery_address||'')}')">ম্যাপ খুলুন</button></div></div>`}
+function jobCard(x){let actions='';if(x.status==='assigned')actions=`<button onclick="jobAction('${x.id}','accepted')">অর্ডার গ্রহণ</button>`;if(x.status==='accepted')actions=`<button onclick="jobAction('${x.id}','picked_up')">খাবার সংগ্রহ করেছি</button>`;if(x.status==='picked_up')actions=`<button onclick="jobAction('${x.id}','delivered')">কাস্টমারকে দিয়ে ডেলিভারি সম্পন্ন</button>`;if(x.status==='delivered')actions=`<button onclick="printJobSlip('${x.id}')">কাস্টমারকে স্লিপ দিন / প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button>`;return `<div class="order"><div class="row between"><h3>${esc(x.order_number)}</h3><span class="pill">${esc(x.status)}</span></div><b>${esc(x.customer_name||'কাস্টমার')}</b><p class="muted">${esc(x.customer_phone||'')}<br>${esc(x.delivery_address||'ঠিকানা নেই')}</p>${jobItemsMarkup(x)}<div class="row between"><b>মোট: ${money(x.order_total)}</b><span class="muted">${esc(x.payment_mode||'')}</span></div><div class="row between"><b>ডেলিভারি চার্জ: ${money(x.delivery_fee)}</b></div>${x.status==='picked_up'?`<div id="rkRouteStatus${x.id}" class="muted topspace">কাস্টমারের GPS লোকেশন পাওয়া গেলে রাস্তার রুট দেখাবে।</div><div id="map${x.id}" class="topspace" style="height:260px;border-radius:14px;overflow:hidden"></div><div class="rk-map-legend"><span><i class="rk-dot rk-customer"></i> Customer location</span><span><i class="rk-dot rk-partner"></i> Your live location</span><span><i class="rk-route-swatch"></i> Road route to customer</span></div>`:''}<div class="row topspace">${actions}<button class="secondary" onclick="navigateTo('${x.id}')">ম্যাপ খুলুন</button></div></div>`}
 
 function slipDate(x){return new Date(x.created_at||x.updated_at||Date.now()).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})}
 function normalizeOrderItems(raw){
@@ -206,49 +206,63 @@ async function shareJobSlip(id){
  }catch(err){if(err.name!=='AbortError')alert('ছবি শেয়ার করা যায়নি: '+err.message)}
 }
 async function jobAction(id,status){const {error}=await sb.from('delivery_partner_jobs').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('partner_id',user.id);if(error)alert(error.message);else{await loadJobs();if(status==='delivered'){showPane('history');alert('ডেলিভারি সম্পন্ন হয়েছে। এখন কাস্টমারকে এই স্লিপটি দিন বা প্রিন্ট করুন; WhatsApp-এ শেয়ার করলে সম্পূর্ণ স্লিপটি ছবি হিসেবে যাবে।')}}}
-/* RK Foodie route guidance: isolated map-only addition; existing partner UI and order flow remain unchanged. */
+/* RK Foodie route guidance: live coordinates + road route + turn-by-turn navigation. */
 const rkPartnerRouteMaps=new Map();
 function rkRouteDistance(a,b){const rad=n=>n*Math.PI/180,R=6371,d1=rad(b.lat-a.lat),d2=rad(b.lng-a.lng),v=Math.sin(d1/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(d2/2)**2;return 2*R*Math.asin(Math.sqrt(v))}
+function rkValidPoint(p){return !!p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180&&(Number(p.lat)!==0||Number(p.lng)!==0)}
 async function initPartnerRouteMap(job){
  const box=$('map'+job.id),status=$('rkRouteStatus'+job.id);if(!box||!status||rkPartnerRouteMaps.has(String(job.id)))return;
- const state={map:null,driverMarker:null,customerMarker:null,line:null,timer:null,busy:false,lastRoute:0,job,trackingToken:null};rkPartnerRouteMaps.set(String(job.id),state);
+ const state={map:null,driverMarker:null,customerMarker:null,line:null,timer:null,busy:false,lastRoute:0,job,trackingToken:null,customer:null,partner:null,hasInitialFit:false};rkPartnerRouteMaps.set(String(job.id),state);
  const say=s=>{if(status.isConnected)status.textContent=s};
  try{
   if(!window.L)throw new Error('Leaflet ম্যাপ লাইব্রেরি লোড হয়নি');
   const {data:orderRow,error:orderError}=await sb.from('orders').select('tracking_token').eq('order_number',job.order_number).maybeSingle();
-  if(orderError)throw orderError;state.trackingToken=orderRow?.tracking_token||null;if(!state.trackingToken){say('এই অর্ডারের Tracking Token পাওয়া যায়নি।');return}
-  const {data,error}=await sb.rpc('get_delivery_tracking',{p_order_number:job.order_number,p_tracking_token:state.trackingToken});
-  if(error)throw error;
-  const c=data&&data.customer_lat!=null&&data.customer_lng!=null?{lat:Number(data.customer_lat),lng:Number(data.customer_lng)}:null;
-  const driverRow=await sb.from('delivery_partner_locations').select('lat,lng,online,updated_at').eq('partner_id',user.id).maybeSingle();
-  if(driverRow.error)throw driverRow.error;
-  const d=driverRow.data&&driverRow.data.online?{lat:Number(driverRow.data.lat),lng:Number(driverRow.data.lng)}:null;
-  const initial=c||d;if(!initial){say('কাস্টমার লোকেশন এখনো শেয়ার করেননি। কাস্টমারকে ট্র্যাকিং চালু করতে বলুন।');return}
-  state.map=L.map(box).setView([initial.lat,initial.lng],14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(state.map);
+  if(orderError)throw orderError;state.trackingToken=orderRow?.tracking_token||null;if(!state.trackingToken){say('এই অর্ডারের Tracking Token পাওয়া যায়নি।');return}
+  state.map=L.map(box,{zoomControl:true,scrollWheelZoom:true}).setView([23.8,87.8],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',crossOrigin:true}).addTo(state.map);
+  const customerIcon=L.divIcon({className:'',html:'<div class="rk-map-pin customer"><span>C</span></div>',iconSize:[32,38],iconAnchor:[16,34],popupAnchor:[0,-32]});
+  const partnerIcon=L.divIcon({className:'',html:'<div class="rk-map-pin partner"><span>DP</span></div>',iconSize:[32,38],iconAnchor:[16,34],popupAnchor:[0,-32]});
   async function refresh(){if(state.busy||!state.map)return;state.busy=true;try{
     const [{data:track,error:te},{data:loc,error:le}]=await Promise.all([
       sb.rpc('get_delivery_tracking',{p_order_number:job.order_number,p_tracking_token:state.trackingToken}),
-      sb.from('delivery_partner_locations').select('lat,lng,online,updated_at').eq('partner_id',user.id).maybeSingle()
+      sb.from('delivery_partner_locations').select('lat,lng,online,updated_at,accuracy').eq('partner_id',user.id).maybeSingle()
     ]);if(te)throw te;if(le)throw le;
     const customer=track&&track.customer_lat!=null&&track.customer_lng!=null?{lat:Number(track.customer_lat),lng:Number(track.customer_lng)}:null;
-    const partner=loc&&loc.online?{lat:Number(loc.lat),lng:Number(loc.lng)}:null;
-    if(!customer){say('কাস্টমারের GPS লোকেশন অপেক্ষায়। কাস্টমারকে ট্র্যাকিং চালু করতে বলুন।');return}
-    if(!partner){say('আপনার GPS লোকেশন পাওয়া যাচ্ছে না। Online চালু রাখুন।');return}
-    const customerIcon=L.divIcon({className:'',html:'<div class="rk-map-pin customer"><span>C</span></div>',iconSize:[32,38],iconAnchor:[16,34],popupAnchor:[0,-32]});if(!state.customerMarker)state.customerMarker=L.marker([customer.lat,customer.lng],{icon:customerIcon}).addTo(state.map).bindPopup('<b>Customer</b><br>Order delivery location');else state.customerMarker.setLatLng([customer.lat,customer.lng]);
-    const partnerIcon=L.divIcon({className:'',html:'<div class="rk-map-pin partner"><span>DP</span></div>',iconSize:[32,38],iconAnchor:[16,34],popupAnchor:[0,-32]});if(!state.driverMarker)state.driverMarker=L.marker([partner.lat,partner.lng],{icon:partnerIcon}).addTo(state.map).bindPopup('<b>Delivery Partner</b><br>Your live location');else state.driverMarker.setLatLng([partner.lat,partner.lng]);
-    const now=Date.now();if(!state.lastRoute||now-state.lastRoute>20000||rkRouteDistance(state.lastPartner||partner,partner)>.08){
-      const url=`https://router.project-osrm.org/route/v1/driving/${partner.lng},${partner.lat};${customer.lng},${customer.lat}?overview=full&geometries=geojson&steps=false`;
-      const response=await fetch(url);if(!response.ok)throw new Error('রুট সার্ভিসে সংযোগ করা যাচ্ছে না');const json=await response.json();const route=json&&json.routes&&json.routes[0];if(!route||!route.geometry||!route.geometry.coordinates.length)throw new Error('এই দুই লোকেশনের মধ্যে রাস্তার রুট পাওয়া যায়নি');
-      const coords=route.geometry.coordinates.map(v=>[v[1],v[0]]);if(state.line)state.line.setLatLngs(coords);else state.line=L.polyline(coords,{color:'#2563eb',weight:6,opacity:.88}).addTo(state.map);
-      state.lastRoute=now;state.lastPartner={...partner};if(!state.hasInitialFit){state.map.fitBounds(state.line.getBounds(),{padding:[24,24]});state.hasInitialFit=true;}say(`Customer-এর দিকে রাস্তা: দূরত্ব: ${(route.distance/1000).toFixed(2)} km • আনুমানিক সময়: ${Math.max(1,Math.round(route.duration/60))} মিনিট`);
-    }else if(state.line){say('আপনার লাইভ GPS আপডেট হচ্ছে • রুট দেখানো হচ্ছে');}
-    setTimeout(()=>state.map&&state.map.invalidateSize(),120);
-  }catch(err){say('রুট আপডেট হয়নি: '+(err.message||'সমস্যা হয়েছে'));console.warn('RK Foodie partner route:',err)}finally{state.busy=false}}
-  await refresh();state.timer=setInterval(refresh,8000);
- }catch(err){say('ম্যাপ চালু করা যায়নি: '+(err.message||'সমস্যা হয়েছে'));console.warn('RK Foodie route map:',err)}
+    const partner=loc&&loc.online?{lat:Number(loc.lat),lng:Number(loc.lng),updated_at:loc.updated_at,accuracy:Number(loc.accuracy||0)}:null;
+    if(!rkValidPoint(customer)){say('Customer-এর সঠিক GPS পাওয়া যায়নি। Customer-কে ওয়েবসাইটে “Use current location” চাপতে এবং GPS অনুমতি দিতে বলুন। শুধু PIN Code দিয়ে বাড়ির সঠিক অবস্থান পাওয়া যায় না।');return}
+    state.customer=customer;
+    if(!rkValidPoint(partner)){say('আপনার Live GPS পাওয়া যাচ্ছে না। Online চালু করুন এবং ফোনের Location High Accuracy করুন।');return}
+    const age=partner.updated_at?Date.now()-new Date(partner.updated_at).getTime():Infinity;
+    if(age>120000){say('আপনার GPS পুরোনো ('+Math.round(age/60000)+' মিনিট)। ফোনের Location চালু রেখে আবার GPS আপডেট করুন।');}
+    state.partner=partner;
+    if(!state.customerMarker)state.customerMarker=L.marker([customer.lat,customer.lng],{icon:customerIcon}).addTo(state.map).bindPopup('<b>Customer location</b><br>ডেলিভারি ঠিকানা');else state.customerMarker.setLatLng([customer.lat,customer.lng]);
+    if(!state.driverMarker)state.driverMarker=L.marker([partner.lat,partner.lng],{icon:partnerIcon}).addTo(state.map).bindPopup('<b>Your live location</b><br>আপনার বর্তমান অবস্থান');else state.driverMarker.setLatLng([partner.lat,partner.lng]);
+    const movedPartner=!state.lastPartner||rkRouteDistance(state.lastPartner,partner)>.02;
+    const movedCustomer=!state.lastCustomer||rkRouteDistance(state.lastCustomer,customer)>.02;
+    const now=Date.now();
+    if(!state.lastRoute||now-state.lastRoute>15000||movedPartner||movedCustomer){
+      const url=`https://router.project-osrm.org/route/v1/driving/${partner.lng},${partner.lat};${customer.lng},${customer.lat}?overview=full&geometries=geojson&steps=true`;
+      const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error('রাস্তার Route সার্ভিসে সংযোগ হচ্ছে না');const json=await response.json();const route=json&&json.routes&&json.routes[0];if(!route||!route.geometry||!route.geometry.coordinates?.length)throw new Error('এই GPS পয়েন্টের মধ্যে রাস্তার Route পাওয়া যায়নি। Customer-এর GPS আবার যাচাই করুন।');
+      const coords=route.geometry.coordinates.map(v=>[v[1],v[0]]);if(state.line)state.line.setLatLngs(coords);else state.line=L.polyline(coords,{color:'#2563eb',weight:6,opacity:.9,lineCap:'round',lineJoin:'round'}).addTo(state.map);
+      state.lastRoute=now;state.lastPartner={...partner};state.lastCustomer={...customer};
+      if(!state.hasInitialFit){const bounds=L.latLngBounds([[customer.lat,customer.lng],[partner.lat,partner.lng]]);state.map.fitBounds(bounds,{padding:[35,35],maxZoom:16});state.hasInitialFit=true;}
+      const km=(route.distance/1000);const mins=Math.max(1,Math.round(route.duration/60));say(`Customer-এর দিকে রাস্তা • ${km<1?Math.round(route.distance)+' মিটার':km.toFixed(2)+' km'} • আনুমানিক ${mins} মিনিট${partner.accuracy?` • GPS নির্ভুলতা ±${Math.round(partner.accuracy)} মি`:''}`);
+    }else if(state.line){say('আপনার ও Customer-এর GPS লাইভ আপডেট হচ্ছে • রাস্তার Route দেখানো হচ্ছে');}
+    setTimeout(()=>state.map&&state.map.invalidateSize(),150);
+  }catch(err){say('Route আপডেট হয়নি: '+(err.message||'সমস্যা হয়েছে'));console.warn('RK Foodie partner route:',err)}finally{state.busy=false}}
+  await refresh();state.timer=setInterval(refresh,5000);
+  setTimeout(()=>state.map&&state.map.invalidateSize(),300);
+ }catch(err){say('ম্যাপ চালু করা যায়নি: '+(err.message||'সমস্যা হয়েছে'));console.warn('RK Foodie route map:',err)}
 }
-function navigateTo(address){window.open('https://www.google.com/maps/search/?api=1&query='+address,'_blank','noopener')}
+function navigateTo(jobId){
+ const state=rkPartnerRouteMaps.get(String(jobId));
+ if(state&&rkValidPoint(state.customer)){
+  const c=state.customer,d=state.partner;
+  const url=d&&rkValidPoint(d)?`https://www.google.com/maps/dir/?api=1&origin=${d.lat},${d.lng}&destination=${c.lat},${c.lng}&travelmode=driving`:`https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}&travelmode=driving`;
+  window.open(url,'_blank','noopener');return;
+ }
+ alert('Customer-এর GPS Coordinates এখনও পাওয়া যায়নি। Customer-কে ওয়েবসাইটে Use current location দিয়ে GPS শেয়ার করতে বলুন।');
+}
 function adminPane(p){['overview','partners','assign','invite'].forEach(x=>$('admin'+x[0].toUpperCase()+x.slice(1)).classList.toggle('hidden',x!==p));if(p==='partners')loadPartners();if(p==='assign')loadPartnerOptions()}
 async function loadAdmin(){const [{data:ps},{data:loc},{data:jobs}] = await Promise.all([sb.from('delivery_partner_profiles').select('*'),sb.from('delivery_partner_locations').select('*').eq('online',true),sb.from('delivery_partner_jobs').select('id,status')]);$('aTotal').textContent=(ps||[]).filter(x=>x.role==='partner').length;$('aPending').textContent=(ps||[]).filter(x=>x.status==='pending').length;$('aOnline').textContent=(loc||[]).length;$('aActive').textContent=(jobs||[]).filter(x=>!['delivered','cancelled'].includes(x.status)).length}
 async function loadPartners(){const {data,error}=await sb.from('delivery_partner_profiles').select('*').order('created_at',{ascending:false});if(error){$('partnerList').textContent=error.message;return}$('partnerList').innerHTML=(data||[]).filter(x=>x.role==='partner').map(x=>`<div class="order"><b>${esc(x.full_name)}</b> <span class="pill">${esc(x.status)}</span><p class="muted">${esc(x.phone)} • ${esc(x.email||'')}<br>ID: ${esc(x.partner_code||'')}</p>${x.status!=='approved'?`<button onclick="approvePartner('${x.user_id}')">Approve</button>`:''} <button class="secondary" onclick="setPartnerStatus('${x.user_id}','suspended')">Suspend</button> <button class="secondary" onclick="setPartnerStatus('${x.user_id}','pending')">Pending</button></div>`).join('')||'কোনো পার্টনার নেই'}
