@@ -67,7 +67,7 @@ async function boot(){try{const {data,error}=await sb.auth.getSession();if(error
 function show(id){['authView','appView','adminView'].forEach(x=>$(x).classList.add('hidden'));$(id).classList.remove('hidden')}
 $('loginForm').onsubmit=async e=>{e.preventDefault();if(!sb)return msg('authMsg','Supabase সংযোগ তৈরি হয়নি। পেজটি রিফ্রেশ করুন।','error');msg('authMsg','লগইন হচ্ছে...');try{const {data,error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});if(error)throw error;if(!data?.user)throw new Error('লগইন সফল হলেও User তথ্য পাওয়া যায়নি।');user=data.user;await enter()}catch(err){console.error('Partner login failed:',err);msg('authMsg','লগইন হয়নি: '+(err.message||'ইমেইল/পাসওয়ার্ড বা Supabase সেটিংস পরীক্ষা করুন'),'error')}};
 $('signupForm').onsubmit=async e=>{e.preventDefault();msg('authMsg','আবেদন জমা হচ্ছে...');const email=$('suEmail').value.trim().toLowerCase(),code=$('suCode').value.trim();pendingAvatarFile=$('suAvatar').files?.[0]||null;const {data,error}=await sb.auth.signUp({email,password:$('suPass').value,options:{data:{full_name:$('suName').value.trim(),phone:$('suPhone').value.trim(),address:$('suAddress').value.trim(),invite_code:code}}});if(error)return msg('authMsg',error.message,'error');if(data.session){user=data.user;await enter()}else msg('authMsg','ইমেইল ভেরিফিকেশন করুন। এরপর লগইন করুন। আবেদন Pending থাকবে।','success')};
-async function enter(){show('appView');const {data,error}=await sb.from('delivery_partner_profiles').select('*').eq('user_id',user.id).maybeSingle();if(error){show('authView');msg('authMsg','লগইন হয়েছে, কিন্তু Partner Profile লোড হয়নি: '+error.message,'error');return}profile=data;if(!profile){msg('partnerStatus','প্রোফাইল পাওয়া যায়নি। অ্যাডমিনের সঙ্গে যোগাযোগ করুন','error');return}if(profile.role==='admin'){show('adminView');await loadAdmin();return}show('appView');$('hello').textContent='হ্যালো, '+(profile.full_name||'পার্টনার');$('partnerStatus').textContent='ID: '+(profile.partner_code||'—')+' • '+profile.status;$('pendingBox').classList.toggle('hidden',profile.status==='approved');$('partnerApp').classList.toggle('hidden',profile.status!=='approved');if(profile.status==='approved'){fillProfile();$('drawerName').textContent=profile.full_name||'পার্টনার';setAvatar(profile.avatar_url||'');if(pendingAvatarFile){try{const avatarUrl=await uploadAvatar(pendingAvatarFile);const {error:avErr}=await sb.from('delivery_partner_profiles').update({avatar_url:avatarUrl}).eq('user_id',user.id);if(!avErr){profile.avatar_url=avatarUrl;setAvatar(avatarUrl)}}catch(avErr){console.warn('Avatar upload:',avErr.message)}pendingAvatarFile=null}await loadJobs();if(jobsPollTimer)clearInterval(jobsPollTimer);jobsPollTimer=setInterval(()=>{if(user&&profile?.status==='approved')loadJobs()},25000);if(jobsRealtimeChannel)sb.removeChannel(jobsRealtimeChannel);jobsRealtimeChannel=sb.channel('partner-jobs-'+user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'delivery_partner_jobs',filter:'partner_id=eq.'+user.id},()=>{if(user&&profile?.status==='approved')loadJobs()}).subscribe()}}
+async function enter(){show('appView');const {data,error}=await sb.from('delivery_partner_profiles').select('*').eq('user_id',user.id).maybeSingle();if(error){show('authView');msg('authMsg','লগইন হয়েছে, কিন্তু Partner Profile লোড হয়নি: '+error.message,'error');return}profile=data;if(!profile){msg('partnerStatus','প্রোফাইল পাওয়া যায়নি। অ্যাডমিনের সঙ্গে যোগাযোগ করুন','error');return}if(profile.role==='admin'){show('adminView');await loadAdmin();return}show('appView');$('hello').textContent='হ্যালো, '+(profile.full_name||'পার্টনার');$('partnerStatus').textContent='ID: '+(profile.partner_code||'—')+' • '+profile.status;$('pendingBox').classList.toggle('hidden',profile.status==='approved');$('partnerApp').classList.toggle('hidden',profile.status!=='approved');if(profile.status==='approved'){fillProfile();$('drawerName').textContent=profile.full_name||'পার্টনার';setAvatar(profile.avatar_url||'');if(pendingAvatarFile){try{const avatarUrl=await uploadAvatar(pendingAvatarFile);const {error:avErr}=await sb.from('delivery_partner_profiles').update({avatar_url:avatarUrl}).eq('user_id',user.id);if(!avErr){profile.avatar_url=avatarUrl;setAvatar(avatarUrl)}}catch(avErr){console.warn('Avatar upload:',avErr.message)}pendingAvatarFile=null}await loadJobs();if(jobsPollTimer)clearInterval(jobsPollTimer);jobsPollTimer=setInterval(()=>{if(user&&profile?.status==='approved')loadJobs()},25000);if(jobsRealtimeChannel)sb.removeChannel(jobsRealtimeChannel);jobsRealtimeChannel=sb.channel('partner-jobs-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'delivery_partner_jobs',filter:'partner_id=eq.'+user.id},()=>{if(user&&profile?.status==='approved')loadJobs()}).subscribe()}}
 async function logout(){rkPartnerRouteMaps.forEach(s=>{if(s.timer)clearInterval(s.timer);if(s.map)s.map.remove()});rkPartnerRouteMaps.clear();if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=null;if(jobsPollTimer)clearInterval(jobsPollTimer);jobsPollTimer=null;if(jobsRealtimeChannel){await sb.removeChannel(jobsRealtimeChannel);jobsRealtimeChannel=null}knownOrderIds.clear();ordersInitialized=false;await sb.auth.signOut();show('authView')}
 function showPane(p){['jobs','history','profile','help','ringtone'].forEach(x=>$(x+'Pane').classList.toggle('hidden',x!==p));document.querySelectorAll('.drawer-link').forEach(b=>b.classList.toggle('active',b.dataset.pane===p));if(p==='ringtone')loadRingtoneSettings()}
 function toggleDrawer(open){$('partnerDrawer').classList.toggle('open',!!open);$('drawerBackdrop').classList.toggle('hidden',!open)}
@@ -160,7 +160,10 @@ function slipDocument(x){
  <h2>ORDERED ITEMS</h2><table class="items"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead><tbody>${rows||'<tr><td colspan="4">Item details unavailable</td></tr>'}</tbody></table>
  <h2>CUSTOMER DETAILS</h2><section class="customer"><span class="customer-name">${esc(x.customer_name||'Customer')}</span><br><b>Phone:</b> ${esc(x.customer_phone||'—')}<br><b>Address:</b> ${esc(x.delivery_address||'—')}</section>
  <div class="total">TOTAL AMOUNT: ${money(x.order_total)}</div><p class="status">Status: <span class="confirmed">CONFIRMED</span></p><p class="thanks">Please deliver the order to the address above. Thank you!</p></main>
- <div class="actions"><button onclick="window.print()">Print / Save PDF</button><button onclick="window.close()">Close Slip</button></div></body></html>`;
+ <div class="actions"><button onclick="window.print()">Print / Save PDF</button><button onclick="window.close()">Close Slip</button></div>
+
+
+</body></html>`;
 }
 function printJobSlip(id){
  const x=jobRows.find(j=>String(j.id)===String(id));if(!x)return alert('অর্ডারের স্লিপ পাওয়া যায়নি।');
@@ -317,4 +320,71 @@ async function approvePartner(id){const {error}=await sb.from('delivery_partner_
 async function loadPartnerOptions(){const {data,error}=await sb.from('delivery_partner_profiles').select('user_id,full_name,partner_code').eq('role','partner').eq('status','approved');$('asPartner').innerHTML=(data||[]).map(x=>`<option value="${x.user_id}">${esc(x.full_name)} (${esc(x.partner_code||'')})</option>`).join('');if(error)msg('assignMsg',error.message,'error')}
 $('assignForm').onsubmit=async e=>{e.preventDefault();const partner=$('asPartner').value,order=$('asOrder').value.trim();const {data:ord,error:oe}=await sb.from('orders').select('*').eq('order_number',order).maybeSingle();if(oe||!ord)return msg('assignMsg',oe?.message||'Order পাওয়া যায়নি','error');const {error}=await sb.from('delivery_partner_jobs').insert({order_number:order,partner_id:partner,assigned_by:user.id,status:'assigned',customer_name:ord.customer_name||ord.name||'',customer_phone:ord.phone||ord.customer_phone||'',delivery_address:ord.address||ord.delivery_address||'',order_total:ord.total||ord.total_amount||0,payment_mode:ord.payment_method||ord.payment_mode||'',items:normalizeOrderItems(ord.items),created_at:ord.created_at||new Date().toISOString(),delivery_fee:0});msg('assignMsg',error?error.message:'অর্ডার Assign হয়েছে',error?'error':'success');loadAdmin()};
 $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase();const {error}=await sb.from('delivery_partner_invites').insert({email:$('ivEmail').value.trim().toLowerCase(),code,created_by:user.id});if(error)return msg('inviteResult',error.message,'error');$('inviteResult').innerHTML='<div class="notice">Invite Code: <b>'+esc(code)+'</b><br>কোডটি পার্টনারকে ব্যক্তিগতভাবে দিন। একবার ব্যবহারযোগ্য।</div>'};
-</script></body></html>
+</script><script id="rk-partner-pin-status-and-navigation-fix">
+(function(){
+ 'use strict';
+ let pinModal=null,pinResolver=null;
+ function ensurePinModal(){
+  if(pinModal)return pinModal;
+  pinModal=document.createElement('div');pinModal.id='rkDeliveryPinModal';
+  pinModal.style.cssText='position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.68);backdrop-filter:blur(5px)';
+  pinModal.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="rkPinTitle" style="width:min(100%,390px);background:#fff;border-radius:22px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.24);font-family:inherit;color:#172033">
+   <div style="width:52px;height:52px;border-radius:16px;background:#fff3e8;color:#e56b0b;display:grid;place-items:center;font-size:22px;margin-bottom:14px"><i class="fa-solid fa-key"></i></div>
+   <h2 id="rkPinTitle" style="font-size:20px;font-weight:900;margin:0 0 6px">Delivery PIN যাচাই</h2>
+   <p style="font-size:13px;line-height:1.6;color:#64748b;margin:0 0 18px">কাস্টমারের কাছ থেকে পাওয়া ৪-ডিজিট PIN লিখুন। সঠিক PIN ছাড়া ডেলিভারি সম্পন্ন হবে না।</p>
+   <label for="rkDeliveryPinInput" style="display:block;font-size:12px;font-weight:800;margin-bottom:7px">৪-ডিজিট Delivery PIN</label>
+   <input id="rkDeliveryPinInput" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="4" pattern="[0-9]{4}" placeholder="••••" style="width:100%;height:58px;border:1.5px solid #dbe3ee;border-radius:14px;text-align:center;font-size:28px;font-weight:900;letter-spacing:12px;padding-left:20px;outline:none;color:#172033" />
+   <p id="rkDeliveryPinError" role="alert" style="min-height:20px;font-size:12px;color:#dc2626;margin:8px 0 12px"></p>
+   <div style="display:flex;gap:10px"><button type="button" id="rkPinCancel" style="flex:1;border:1px solid #dbe3ee;border-radius:12px;padding:13px;font-weight:800;background:#fff;color:#475569">বাতিল</button><button type="button" id="rkPinConfirm" style="flex:1;border:0;border-radius:12px;padding:13px;font-weight:900;background:#ea730d;color:#fff">PIN যাচাই করে সম্পন্ন</button></div>
+  </section>`;
+  document.body.appendChild(pinModal);
+  const input=pinModal.querySelector('#rkDeliveryPinInput'),error=pinModal.querySelector('#rkDeliveryPinError');
+  const finish=value=>{pinModal.style.display='none';if(pinResolver){const resolve=pinResolver;pinResolver=null;resolve(value)}};
+  pinModal.querySelector('#rkPinCancel').onclick=()=>finish(null);
+  pinModal.addEventListener('click',e=>{if(e.target===pinModal)finish(null)});
+  input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4);error.textContent=''});
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')pinModal.querySelector('#rkPinConfirm').click();if(e.key==='Escape')finish(null)});
+  pinModal.querySelector('#rkPinConfirm').onclick=()=>{const value=input.value.trim();if(!/^\d{4}$/.test(value)){error.textContent='সঠিক ৪-ডিজিট PIN লিখুন।';input.focus();return}finish(value)};
+  pinModal._open=()=>new Promise(resolve=>{pinResolver=resolve;input.value='';error.textContent='';pinModal.style.display='flex';setTimeout(()=>input.focus(),80)});
+  return pinModal;
+ }
+ async function askDeliveryPin(){return ensurePinModal()._open()}
+ window.jobAction=async function(id,status){
+  if(!window.sb&&!sb){alert('Supabase সংযোগ পাওয়া যায়নি।');return}
+  let pin=null;
+  if(status==='delivered'){pin=await askDeliveryPin();if(pin===null)return}
+  const buttons=[...document.querySelectorAll(`button[onclick*="jobAction('${String(id).replace(/'/g,"\\'")}"]`)];
+  buttons.forEach(b=>{b.disabled=true;b.dataset.rkBusy='1'});
+  try{
+   // The database RPC validates the PIN and updates both tables in one transaction.
+   const {data,error}=await sb.rpc('partner_update_order_status',{p_job_id:String(id),p_status:String(status),p_delivery_pin:pin});
+   if(error)throw error;
+   if(data&&data.success===false){if(data.code==='invalid_pin')throw new Error('PIN সঠিক নয়। কাস্টমারের কাছ থেকে আবার PIN নিয়ে চেষ্টা করুন।');if(data.code==='invalid_transition')throw new Error('এই অর্ডারের বর্তমান স্ট্যাটাস থেকে এই পরিবর্তন করা যাবে না।');throw new Error(data.message||'অর্ডার স্ট্যাটাস আপডেট হয়নি।')}
+   await loadJobs();
+   if(status==='delivered'){showPane('history');alert('PIN সঠিক। ডেলিভারি সম্পন্ন হয়েছে এবং অর্ডারের স্ট্যাটাস Supabase-এ আপডেট হয়েছে।')}
+  }catch(err){console.error('RK Foodie partner status update:',err);alert('স্ট্যাটাস আপডেট হয়নি: '+(err.message||err)+'\nSupabase SQL setup চালানো হয়েছে কি না যাচাই করুন।')}
+  finally{buttons.forEach(b=>{b.disabled=false;delete b.dataset.rkBusy})}
+ };
+ window.navigateTo=async function(jobId){
+  const state=rkPartnerRouteMaps.get(String(jobId));
+  const job=(jobRows||[]).find(x=>String(x.id)===String(jobId))||state?.job;
+  let customer=state?.customer;
+  let address=job?.delivery_address||job?.address||'';
+  if(!rkValidPoint(customer)){
+   const orderNumber=job?.order_number||state?.job?.order_number||'';
+   if(orderNumber){
+    const {data:order,error}=await sb.from('orders').select('customer_lat,customer_lng,address').eq('order_number',orderNumber).maybeSingle();
+    if(error)console.warn('RK Foodie navigation location lookup:',error.message);
+    if(order){address=order.address||address;const candidate={lat:Number(order.customer_lat),lng:Number(order.customer_lng)};if(rkValidPoint(candidate))customer=candidate;}
+   }
+  }
+  let destination='';
+  if(rkValidPoint(customer))destination=`${Number(customer.lat).toFixed(7)},${Number(customer.lng).toFixed(7)}`;
+  else if(String(address).trim())destination=String(address).trim();
+  if(!destination){alert('এই অর্ডারের GPS লোকেশন বা ডেলিভারি ঠিকানা পাওয়া যায়নি। অর্ডারের তথ্য যাচাই করুন।');return}
+  const url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination)+'&travelmode=driving&dir_action=navigate';
+  window.location.assign(url);
+ };
+})();
+</script>
+</body></html>
