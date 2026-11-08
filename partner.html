@@ -209,9 +209,7 @@ async function jobAction(id,status){const {error}=await sb.from('delivery_partne
 /* RK Foodie hybrid map: Leaflet/OpenStreetMap pins + Google Maps navigation. */
 const rkPartnerRouteMaps=new Map();
 
-/* Service-area guard: broad West Bengal bounds to reject obviously wrong GPS points.
-   Adjust these four values if RK Foodie serves a different region. */
-const RK_LOCAL_GPS_BOUNDS={minLat:20.5,maxLat:27.5,minLng:85.0,maxLng:90.0};
+/* Coordinate validation is global; do not reject valid customer pins using a guessed service-area rectangle. */
 
 function rkRouteDistance(a,b){
  const rad=n=>n*Math.PI/180,R=6371,d1=rad(b.lat-a.lat),d2=rad(b.lng-a.lng);
@@ -219,9 +217,9 @@ function rkRouteDistance(a,b){
  return 2*R*Math.asin(Math.sqrt(v));
 }
 function rkValidPoint(p){
- if(!p||!Number.isFinite(Number(p.lat))||!Number.isFinite(Number(p.lng)))return false;
- const lat=Number(p.lat),lng=Number(p.lng),b=RK_LOCAL_GPS_BOUNDS;
- return lat!==0&&lng!==0&&lat>=b.minLat&&lat<=b.maxLat&&lng>=b.minLng&&lng<=b.maxLng;
+ if(!p||p.lat===null||p.lat===undefined||p.lng===null||p.lng===undefined)return false;
+ const lat=Number(p.lat),lng=Number(p.lng);
+ return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180&&!(lat===0&&lng===0);
 }
 async function initPartnerRouteMap(job){
  const box=$('map'+job.id),status=$('rkRouteStatus'+job.id);
@@ -231,11 +229,12 @@ async function initPartnerRouteMap(job){
  const say=s=>{if(status.isConnected)status.textContent=s};
  try{
   if(!window.L)throw new Error('Leaflet ম্যাপ লাইব্রেরি লোড হয়নি');
-  const {data:orderRow,error:orderError}=await sb.from('orders').select('tracking_token').eq('order_number',job.order_number).maybeSingle();
+  const {data:orderRow,error:orderError}=await sb.from('orders').select('tracking_token,customer_lat,customer_lng').eq('order_number',job.order_number).maybeSingle();
   if(orderError)throw orderError;
   state.trackingToken=orderRow?.tracking_token||null;
-  if(!state.trackingToken){say('এই অর্ডারের Tracking Token পাওয়া যায়নি।');return}
-  state.map=L.map(box,{zoomControl:true,scrollWheelZoom:false}).setView([23.8,87.8],11);
+  const dbLat=orderRow?.customer_lat??job.customer_lat,dbLng=orderRow?.customer_lng??job.customer_lng;
+  if(dbLat!==null&&dbLat!==undefined&&dbLng!==null&&dbLng!==undefined){const candidate={lat:Number(dbLat),lng:Number(dbLng)};if(rkValidPoint(candidate))state.customer=candidate;}
+  state.map=L.map(box,{zoomControl:true,scrollWheelZoom:false}).setView(state.customer?[state.customer.lat,state.customer.lng]:[23.8,87.8],state.customer?15:11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
    maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
   }).addTo(state.map);
@@ -245,22 +244,26 @@ async function initPartnerRouteMap(job){
    if(state.busy||!state.map)return;
    state.busy=true;
    try{
+    const trackingPromise=state.trackingToken
+     ?sb.rpc('get_delivery_tracking',{p_order_number:job.order_number,p_tracking_token:state.trackingToken})
+     :Promise.resolve({data:null,error:null});
     const [{data:track,error:te},{data:loc,error:le}]=await Promise.all([
-     sb.rpc('get_delivery_tracking',{p_order_number:job.order_number,p_tracking_token:state.trackingToken}),
+     trackingPromise,
      sb.from('delivery_partner_locations').select('lat,lng,online,updated_at,accuracy').eq('partner_id',user.id).maybeSingle()
     ]);
     if(te)throw te;if(le)throw le;
-    const rawCustomer=track&&track.customer_lat!=null&&track.customer_lng!=null
+    const rpcCustomer=track&&track.customer_lat!=null&&track.customer_lng!=null
      ?{lat:Number(track.customer_lat),lng:Number(track.customer_lng)}:null;
+    const rawCustomer=rkValidPoint(rpcCustomer)?rpcCustomer:state.customer;
     const rawPartner=loc&&loc.online?{lat:Number(loc.lat),lng:Number(loc.lng),updated_at:loc.updated_at,accuracy:Number(loc.accuracy||0)}:null;
     if(!rkValidPoint(rawCustomer)){
      state.customer=null;
-     say('কাস্টমারের GPS লোকেশন সঠিক নয় বা সার্ভিস এলাকার বাইরে। কাস্টমারকে ওয়েবসাইটে “Use current location” দিয়ে আবার লোকেশন শেয়ার করতে বলুন।');
+     say('এই অর্ডারের Supabase রেকর্ডে customer_lat/customer_lng পাওয়া যায়নি। অর্ডারের GPS কলাম ও ডেটা যাচাই করুন।');
      return;
     }
     state.customer=rawCustomer;
     if(!rkValidPoint(rawPartner)){
-     say('আপনার GPS পাওয়া যাচ্ছে না বা লোকেশন সার্ভিস এলাকার বাইরে। Online চালু করুন এবং Location অনুমতি দিন।');
+     say('আপনার লাইভ GPS পাওয়া যাচ্ছে না। Location permission Allow করে Online চালু রাখুন।');
      if(state.customerMarker)state.customerMarker.setLatLng([rawCustomer.lat,rawCustomer.lng]);
      else state.customerMarker=L.marker([rawCustomer.lat,rawCustomer.lng],{icon:customerIcon}).addTo(state.map).bindPopup('<b>Customer location</b>');
      if(!state.hasInitialFit){state.map.setView([rawCustomer.lat,rawCustomer.lng],15);state.hasInitialFit=true}
@@ -292,15 +295,20 @@ async function initPartnerRouteMap(job){
   console.warn('RK Foodie hybrid map initialization:',err);
  }
 }
-function navigateTo(jobId){
+async function navigateTo(jobId){
  const state=rkPartnerRouteMaps.get(String(jobId));
- const customer=state?.customer;
+ let customer=state?.customer;
  if(!rkValidPoint(customer)){
-  alert('কাস্টমারের সঠিক GPS Coordinates এখনও পাওয়া যায়নি। কাস্টমারকে “Use current location” দিয়ে GPS শেয়ার করতে বলুন।');
-  return;
+  const job=(jobRows||[]).find(x=>String(x.id)===String(jobId));
+  const {data:order,error}=await sb.from('orders').select('customer_lat,customer_lng').eq('order_number',job?.order_number||state?.job?.order_number||'').maybeSingle();
+  if(error)console.warn('Customer GPS fallback query:',error.message);
+  const candidate=order?{lat:Number(order.customer_lat),lng:Number(order.customer_lng)}:job?{lat:Number(job.customer_lat),lng:Number(job.customer_lng)}:null;
+  if(rkValidPoint(candidate)){customer=candidate;if(state)state.customer=candidate;}
  }
- const url=`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(customer.lat+','+customer.lng)}&travelmode=driving`;
- window.open(url,'_blank','noopener,noreferrer');
+ if(!rkValidPoint(customer)){alert('এই অর্ডারের Supabase রেকর্ডে বৈধ GPS Coordinates নেই। customer_lat এবং customer_lng কলাম ও অর্ডারটি যাচাই করুন।');return;}
+ const url=`https://www.google.com/maps/dir/?api=1&destination=${customer.lat},${customer.lng}&travelmode=driving`;
+ // Google Maps universal URL opens the installed app on supported phones, otherwise its web route.
+ window.location.href=url;
 }
 function adminPane(p){['overview','partners','assign','invite'].forEach(x=>$('admin'+x[0].toUpperCase()+x.slice(1)).classList.toggle('hidden',x!==p));if(p==='partners')loadPartners();if(p==='assign')loadPartnerOptions()}
 async function loadAdmin(){const [{data:ps},{data:loc},{data:jobs}] = await Promise.all([sb.from('delivery_partner_profiles').select('*'),sb.from('delivery_partner_locations').select('*').eq('online',true),sb.from('delivery_partner_jobs').select('id,status')]);$('aTotal').textContent=(ps||[]).filter(x=>x.role==='partner').length;$('aPending').textContent=(ps||[]).filter(x=>x.status==='pending').length;$('aOnline').textContent=(loc||[]).length;$('aActive').textContent=(jobs||[]).filter(x=>!['delivered','cancelled'].includes(x.status)).length}
