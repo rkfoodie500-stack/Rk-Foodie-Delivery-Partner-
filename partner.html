@@ -122,16 +122,18 @@ function dismissOrderToast(){$('rkOrderToast')?.classList.add('hidden')}
 async function syncMissingJobItems(rows){
  const needs=(rows||[]).filter(j=>!slipItems(j).length&&j.order_number);
  for(const job of needs){try{
-  const {data:order,error}=await sb.from('orders').select('items,created_at,customer_name,phone,address,payment_method,total').eq('order_number',job.order_number).maybeSingle();
+  const {data:order,error}=await sb.from('orders').select('*').eq('order_number',job.order_number).maybeSingle();
   if(error||!order)continue;const items=normalizeOrderItems(order.items);if(!items.length)continue;
-  const patch={items};if(!job.created_at&&order.created_at)patch.created_at=order.created_at;if(!job.customer_name&&order.customer_name)patch.customer_name=order.customer_name;if(!job.customer_phone&&order.phone)patch.customer_phone=order.phone;if(!job.delivery_address&&order.address)patch.delivery_address=order.address;if(!job.payment_mode&&order.payment_method)patch.payment_mode=order.payment_method;if(!Number(job.order_total)&&order.total)patch.order_total=order.total;
+  const orderAddress=order.address||order.delivery_address||order.customer_address||'';
+  const orderLandmark=order.landmark||order.delivery_landmark||order.customer_landmark||'';
+  const patch={items};if(!job.created_at&&order.created_at)patch.created_at=order.created_at;if(!job.customer_name&&(order.customer_name||order.name))patch.customer_name=order.customer_name||order.name;if(!job.customer_phone&&(order.phone||order.customer_phone))patch.customer_phone=order.phone||order.customer_phone;if(!job.delivery_address&&orderAddress)patch.delivery_address=orderAddress;if(!job.delivery_landmark&&orderLandmark)patch.delivery_landmark=orderLandmark;if(job.customer_lat==null&&order.customer_lat!=null)patch.customer_lat=order.customer_lat;if(job.customer_lng==null&&order.customer_lng!=null)patch.customer_lng=order.customer_lng;if(!job.payment_mode&&(order.payment_method||order.payment_mode))patch.payment_mode=order.payment_method||order.payment_mode;if(!Number(job.order_total)&&(order.total||order.total_amount))patch.order_total=order.total||order.total_amount;
   const {error:updateError}=await sb.from('delivery_partner_jobs').update(patch).eq('id',job.id).eq('partner_id',user.id);if(!updateError)Object.assign(job,patch);
  }catch(err){console.warn('Order item sync failed:',job.order_number,err)}}return rows;
 }
 async function loadJobs(){rkPartnerRouteMaps.forEach(s=>{if(s.timer)clearInterval(s.timer);if(s.map)s.map.remove()});rkPartnerRouteMaps.clear();const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent=error.message;return}jobRows=await syncMissingJobItems(data||[]);const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';active.filter(x=>x.status==='picked_up').forEach(x=>initPartnerRouteMap(x));const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jobItemsMarkup(x){const items=slipItems(x);if(!items.length)return '<div class="job-items muted">খাবারের তালিকা অর্ডার রেকর্ড থেকে পাওয়া যায়নি। অর্ডারটি Sync করুন অথবা Admin-কে জানান।</div>';return `<div class="job-items"><b>অর্ডারের খাবার</b><ul>${items.map(i=>`<li>${esc(i.title)} × ${i.quantity} — ${money(i.price*i.quantity)}</li>`).join('')}</ul></div>`}
-function jobCard(x){let actions='';if(x.status==='assigned')actions=`<button onclick="jobAction('${x.id}','accepted')">অর্ডার গ্রহণ</button>`;if(x.status==='accepted')actions=`<button onclick="jobAction('${x.id}','picked_up')">খাবার সংগ্রহ করেছি</button>`;if(x.status==='picked_up')actions=`<button onclick="jobAction('${x.id}','delivered')">কাস্টমারকে দিয়ে ডেলিভারি সম্পন্ন</button>`;if(x.status==='delivered')actions=`<button onclick="printJobSlip('${x.id}')">কাস্টমারকে স্লিপ দিন / প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button>`;return `<div class="order"><div class="row between"><h3>${esc(x.order_number)}</h3><span class="pill">${esc(x.status)}</span></div><b>${esc(x.customer_name||'কাস্টমার')}</b><p class="muted">${esc(x.customer_phone||'')}<br>${esc(x.delivery_address||'ঠিকানা নেই')}</p>${jobItemsMarkup(x)}<div class="row between"><b>মোট: ${money(x.order_total)}</b><span class="muted">${esc(x.payment_mode||'')}</span></div><div class="row between"><b>ডেলিভারি চার্জ: ${money(x.delivery_fee)}</b></div>${x.status==='picked_up'?`<div id="rkRouteStatus${x.id}" class="muted topspace">কাস্টমার ও আপনার GPS পিন দেখানোর জন্য লোকেশন লোড হচ্ছে...</div><div id="map${x.id}" class="topspace" style="height:280px;border-radius:14px;overflow:hidden;border:1px solid #dbeafe"></div><div class="rk-map-legend"><span><i class="rk-dot rk-customer"></i> কাস্টমারের অবস্থান</span><span><i class="rk-dot rk-partner"></i> আপনার বর্তমান অবস্থান</span></div><button type="button" class="rk-google-nav" onclick="navigateTo('${x.id}')">📍 গুগল ম্যাপে রুট দেখুন</button><div class="rk-map-meta">লোকাল ম্যাপ: OpenStreetMap • নেভিগেশন: Google Maps</div>`:''}<div class="row topspace">${actions}<button class="secondary" onclick="navigateTo('${x.id}')">ম্যাপ খুলুন</button></div></div>`}
+function jobCard(x){let actions='';if(x.status==='assigned')actions=`<button onclick="jobAction('${x.id}','accepted')">অর্ডার গ্রহণ</button>`;if(x.status==='accepted')actions=`<button onclick="jobAction('${x.id}','picked_up')">খাবার সংগ্রহ করেছি</button>`;if(x.status==='picked_up')actions=`<button onclick="jobAction('${x.id}','delivered')">কাস্টমারকে দিয়ে ডেলিভারি সম্পন্ন</button>`;if(x.status==='delivered')actions=`<button onclick="printJobSlip('${x.id}')">কাস্টমারকে স্লিপ দিন / প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button>`;const landmark=x.delivery_landmark||x.landmark||'';return `<div class="order"><div class="row between"><h3>${esc(x.order_number)}</h3><span class="pill">${esc(x.status)}</span></div><b>${esc(x.customer_name||'কাস্টমার')}</b><p class="muted">${esc(x.customer_phone||'')}<br>${esc(x.delivery_address||'ঠিকানা নেই')}${landmark?`<br><b>Landmark:</b> ${esc(landmark)}`:''}</p>${jobItemsMarkup(x)}<div class="row between"><b>মোট: ${money(x.order_total)}</b><span class="muted">${esc(x.payment_mode||'')}</span></div><div class="row between"><b>ডেলিভারি চার্জ: ${money(x.delivery_fee)}</b></div>${x.status==='picked_up'?`<div id="rkRouteStatus${x.id}" class="muted topspace">কাস্টমার ও আপনার GPS পিন দেখানোর জন্য লোকেশন লোড হচ্ছে...</div><div id="map${x.id}" class="topspace" style="height:280px;border-radius:14px;overflow:hidden;border:1px solid #dbeafe"></div><div class="rk-map-legend"><span><i class="rk-dot rk-customer"></i> কাস্টমারের অবস্থান</span><span><i class="rk-dot rk-partner"></i> আপনার বর্তমান অবস্থান</span></div><button type="button" class="rk-google-nav" onclick="navigateTo('${x.id}','route')">📍 গুগল ম্যাপে রুট দেখুন</button><div class="rk-map-meta">লোকাল ম্যাপ: OpenStreetMap • নেভিগেশন: Google Maps</div>`:''}<div class="row topspace">${actions}<button class="secondary" onclick="navigateTo('${x.id}','search')">ম্যাপ খুলুন</button></div></div>`}
 
 function slipDate(x){return new Date(x.created_at||x.updated_at||Date.now()).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})}
 function normalizeOrderItems(raw){
@@ -208,7 +210,7 @@ async function shareJobSlip(id){
   alert('স্লিপটি PNG ছবি হিসেবে ডাউনলোড হয়েছে। WhatsApp খুলে এই ছবিটি অ্যাটাচ করে পাঠান।');
  }catch(err){if(err.name!=='AbortError')alert('ছবি শেয়ার করা যায়নি: '+err.message)}
 }
-async function jobAction(id,status){const {error}=await sb.from('delivery_partner_jobs').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('partner_id',user.id);if(error)alert(error.message);else{await loadJobs();if(status==='delivered'){showPane('history');alert('ডেলিভারি সম্পন্ন হয়েছে। এখন কাস্টমারকে এই স্লিপটি দিন বা প্রিন্ট করুন; WhatsApp-এ শেয়ার করলে সম্পূর্ণ স্লিপটি ছবি হিসেবে যাবে।')}}}
+// Status changes are handled by the secure partner_update_order_status RPC below; no direct status INSERT/UPDATE is used here.
 /* RK Foodie hybrid map: Leaflet/OpenStreetMap pins + Google Maps navigation. */
 const rkPartnerRouteMaps=new Map();
 
@@ -318,7 +320,7 @@ async function loadAdmin(){const [{data:ps},{data:loc},{data:jobs}] = await Prom
 async function loadPartners(){const {data,error}=await sb.from('delivery_partner_profiles').select('*').order('created_at',{ascending:false});if(error){$('partnerList').textContent=error.message;return}$('partnerList').innerHTML=(data||[]).filter(x=>x.role==='partner').map(x=>`<div class="order"><b>${esc(x.full_name)}</b> <span class="pill">${esc(x.status)}</span><p class="muted">${esc(x.phone)} • ${esc(x.email||'')}<br>ID: ${esc(x.partner_code||'')}</p>${x.status!=='approved'?`<button onclick="approvePartner('${x.user_id}')">Approve</button>`:''} <button class="secondary" onclick="setPartnerStatus('${x.user_id}','suspended')">Suspend</button> <button class="secondary" onclick="setPartnerStatus('${x.user_id}','pending')">Pending</button></div>`).join('')||'কোনো পার্টনার নেই'}
 async function approvePartner(id){const {error}=await sb.from('delivery_partner_profiles').update({status:'approved'}).eq('user_id',id);if(error)alert(error.message);loadPartners();loadAdmin()};async function setPartnerStatus(id,status){const {error}=await sb.from('delivery_partner_profiles').update({status}).eq('user_id',id);if(error)alert(error.message);loadPartners();loadAdmin()}
 async function loadPartnerOptions(){const {data,error}=await sb.from('delivery_partner_profiles').select('user_id,full_name,partner_code').eq('role','partner').eq('status','approved');$('asPartner').innerHTML=(data||[]).map(x=>`<option value="${x.user_id}">${esc(x.full_name)} (${esc(x.partner_code||'')})</option>`).join('');if(error)msg('assignMsg',error.message,'error')}
-$('assignForm').onsubmit=async e=>{e.preventDefault();const partner=$('asPartner').value,order=$('asOrder').value.trim();const {data:ord,error:oe}=await sb.from('orders').select('*').eq('order_number',order).maybeSingle();if(oe||!ord)return msg('assignMsg',oe?.message||'Order পাওয়া যায়নি','error');const {error}=await sb.from('delivery_partner_jobs').insert({order_number:order,partner_id:partner,assigned_by:user.id,status:'assigned',customer_name:ord.customer_name||ord.name||'',customer_phone:ord.phone||ord.customer_phone||'',delivery_address:ord.address||ord.delivery_address||'',order_total:ord.total||ord.total_amount||0,payment_mode:ord.payment_method||ord.payment_mode||'',items:normalizeOrderItems(ord.items),created_at:ord.created_at||new Date().toISOString(),delivery_fee:0});msg('assignMsg',error?error.message:'অর্ডার Assign হয়েছে',error?'error':'success');loadAdmin()};
+$('assignForm').onsubmit=async e=>{e.preventDefault();const partner=$('asPartner').value,order=$('asOrder').value.trim();const {data:ord,error:oe}=await sb.from('orders').select('*').eq('order_number',order).maybeSingle();if(oe||!ord)return msg('assignMsg',oe?.message||'Order পাওয়া যায়নি','error');const {error}=await sb.from('delivery_partner_jobs').insert({order_number:order,partner_id:partner,assigned_by:user.id,status:'assigned',customer_name:ord.customer_name||ord.name||'',customer_phone:ord.phone||ord.customer_phone||'',delivery_address:ord.address||ord.delivery_address||ord.customer_address||'',delivery_landmark:ord.landmark||ord.delivery_landmark||ord.customer_landmark||'',customer_lat:ord.customer_lat??null,customer_lng:ord.customer_lng??null,order_total:ord.total||ord.total_amount||0,payment_mode:ord.payment_method||ord.payment_mode||'',items:normalizeOrderItems(ord.items),created_at:ord.created_at||new Date().toISOString(),delivery_fee:0});if(error){msg('assignMsg',error.message,'error');return}const {error:statusError}=await sb.from('orders').update({status:'assigned'}).eq('order_number',order);msg('assignMsg',statusError?'পার্টনার Job তৈরি হয়েছে, কিন্তু Orders status sync হয়নি: '+statusError.message:'অর্ডার Assign হয়েছে এবং Orders status assigned করা হয়েছে',statusError?'error':'success');loadAdmin()};
 $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase();const {error}=await sb.from('delivery_partner_invites').insert({email:$('ivEmail').value.trim().toLowerCase(),code,created_by:user.id});if(error)return msg('inviteResult',error.message,'error');$('inviteResult').innerHTML='<div class="notice">Invite Code: <b>'+esc(code)+'</b><br>কোডটি পার্টনারকে ব্যক্তিগতভাবে দিন। একবার ব্যবহারযোগ্য।</div>'};
 </script><script id="rk-partner-pin-status-and-navigation-fix">
 (function(){
@@ -351,6 +353,7 @@ $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.ran
  async function askDeliveryPin(){return ensurePinModal()._open()}
  window.jobAction=async function(id,status){
   if(!window.sb&&!sb){alert('Supabase সংযোগ পাওয়া যায়নি।');return}
+  if(!['accepted','picked_up','delivered'].includes(String(status))){alert('এই স্ট্যাটাস পরিবর্তনটি অনুমোদিত নয়।');return}
   let pin=null;
   if(status==='delivered'){pin=await askDeliveryPin();if(pin===null)return}
   const buttons=[...document.querySelectorAll(`button[onclick*="jobAction('${String(id).replace(/'/g,"\\'")}"]`)];
@@ -365,24 +368,34 @@ $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.ran
   }catch(err){console.error('RK Foodie partner status update:',err);alert('স্ট্যাটাস আপডেট হয়নি: '+(err.message||err)+'\nSupabase SQL setup চালানো হয়েছে কি না যাচাই করুন।')}
   finally{buttons.forEach(b=>{b.disabled=false;delete b.dataset.rkBusy})}
  };
- window.navigateTo=async function(jobId){
+ window.navigateTo=async function(jobId,mode='route'){
   const state=rkPartnerRouteMaps.get(String(jobId));
   const job=(jobRows||[]).find(x=>String(x.id)===String(jobId))||state?.job;
   let customer=state?.customer;
+  let orderRow=null;
   let address=job?.delivery_address||job?.address||'';
-  if(!rkValidPoint(customer)){
+  let landmark=job?.delivery_landmark||job?.landmark||'';
+  if(!rkValidPoint(customer)||!String(address).trim()||!String(landmark).trim()){
    const orderNumber=job?.order_number||state?.job?.order_number||'';
    if(orderNumber){
-    const {data:order,error}=await sb.from('orders').select('customer_lat,customer_lng,address').eq('order_number',orderNumber).maybeSingle();
+    const {data:order,error}=await sb.from('orders').select('*').eq('order_number',orderNumber).maybeSingle();
     if(error)console.warn('RK Foodie navigation location lookup:',error.message);
-    if(order){address=order.address||address;const candidate={lat:Number(order.customer_lat),lng:Number(order.customer_lng)};if(rkValidPoint(candidate))customer=candidate;}
+    if(order){orderRow=order;address=order.address||order.delivery_address||order.customer_address||address;landmark=order.landmark||order.delivery_landmark||order.customer_landmark||landmark;const candidate={lat:Number(order.customer_lat),lng:Number(order.customer_lng)};if(rkValidPoint(candidate))customer=candidate;}
    }
   }
-  let destination='';
-  if(rkValidPoint(customer))destination=`${Number(customer.lat).toFixed(7)},${Number(customer.lng).toFixed(7)}`;
-  else if(String(address).trim())destination=String(address).trim();
-  if(!destination){alert('এই অর্ডারের GPS লোকেশন বা ডেলিভারি ঠিকানা পাওয়া যায়নি। অর্ডারের তথ্য যাচাই করুন।');return}
-  const url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination)+'&travelmode=driving&dir_action=navigate';
+  const addressText=[String(address||'').trim(),String(landmark||'').trim()].filter(Boolean).join(', ');
+  const hasGps=rkValidPoint(customer);
+  if(!hasGps&&!addressText){alert('এই অর্ডারের GPS লোকেশন, ঠিকানা বা Landmark পাওয়া যায়নি। অর্ডারের তথ্য যাচাই করুন।');return}
+  let url='';
+  if(mode==='search'){
+   // Search mode carries both the precise GPS pin and the human-readable address/landmark.
+   const query=[hasGps?`${Number(customer.lat).toFixed(7)}, ${Number(customer.lng).toFixed(7)}`:'',addressText].filter(Boolean).join(' — ');
+   url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query);
+  }else{
+   // Directions mode uses the exact GPS coordinate whenever available; address text is the fallback.
+   const destination=hasGps?`${Number(customer.lat).toFixed(7)},${Number(customer.lng).toFixed(7)}`:addressText;
+   url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination)+'&travelmode=driving&dir_action=navigate';
+  }
   window.location.assign(url);
  };
 })();
