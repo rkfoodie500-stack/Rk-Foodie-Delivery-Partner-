@@ -93,6 +93,46 @@ input[type=file].blue-upload::file-selector-button{display:block;margin:0 auto 9
 @media(max-width:430px){#ringtonePane .ring-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}#ringtonePane .ring-actions button{font-size:11px;padding:10px 2px;white-space:normal}#ringtonePane .ring-actions button:first-child{font-size:10px}}
 
 </style>
+
+<style id="rk-verify-animation-css">
+#rkVerifyOverlay{position:fixed;inset:0;z-index:100100;background:#fff;display:none;align-items:center;justify-content:center;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#rkVerifyOverlay.show{display:flex}
+#rkVerifyOverlay .rk-v-circle-wrap{position:absolute;width:100vw;height:100vh;background:#00c853;display:flex;align-items:center;justify-content:center;animation:rkVshrink .8s cubic-bezier(.77,0,.175,1) .6s forwards;z-index:2}
+#rkVerifyOverlay .rk-v-bigcheck{color:#fff;font-size:50px;font-weight:bold;animation:rkVfade .3s ease .5s forwards}
+#rkVerifyOverlay .rk-v-content{position:absolute;text-align:center;display:flex;flex-direction:column;align-items:center;opacity:0;animation:rkVshow .3s ease 1.3s forwards;z-index:1}
+#rkVerifyOverlay .rk-v-circle-box{position:relative;margin-bottom:20px}
+#rkVerifyOverlay .rk-v-ball{width:75px;height:75px;background:#00c853;border-radius:50%;display:flex;justify-content:center;align-items:center;transform:scale(0);animation:rkVpop .5s cubic-bezier(.175,.885,.32,1.275) 1.3s forwards;box-shadow:0 10px 25px rgba(0,200,83,.3);position:relative;z-index:3;color:#fff;font-size:34px;font-weight:bold}
+#rkVerifyOverlay .rk-v-amount{font-size:44px;font-weight:700;color:#000;opacity:0;transform:translateY(15px);animation:rkVslide .4s ease 1.5s forwards}
+#rkVerifyOverlay .rk-v-name{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;opacity:0;transform:translateY(15px);animation:rkVslide .4s ease 1.7s forwards;color:#7b818c;font-size:17px;font-weight:500}
+#rkVerifyOverlay .rk-v-badge{display:inline-flex;justify-content:center;align-items:center;width:15px;height:15px;background:#0095ff;border-radius:50%;color:#fff;font-size:9.5px;font-weight:bold}
+#rkVerifyOverlay .rk-v-confetti{position:absolute;top:50%;left:50%;width:9px;height:9px;border-radius:50%;opacity:0;pointer-events:none;z-index:2}
+@keyframes rkVshrink{0%{width:100vw;height:100vh;border-radius:0}100%{width:75px;height:75px;border-radius:50%;transform:translateY(-95px);opacity:0}}
+@keyframes rkVfade{to{opacity:0}}
+@keyframes rkVshow{to{opacity:1}}
+@keyframes rkVpop{0%{transform:scale(0) translateY(30px)}100%{transform:scale(1) translateY(0)}}
+@keyframes rkVslide{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+
+<style id="rk-wrong-pin-animation-css">
+#rkWrongPinOverlay{position:fixed;inset:0;z-index:100200;background:#fff;display:none;align-items:center;justify-content:center;overflow:hidden;font-family:inherit;pointer-events:all}
+#rkWrongPinOverlay.rk-wrong-show{display:flex}
+#rkWrongPinOverlay .rk-w-circle-wrap{position:absolute;inset:0;width:100vw;height:100vh;background:#ff3b30;display:flex;align-items:center;justify-content:center;animation:rkWrongShrink .8s cubic-bezier(.77,0,.175,1) .6s forwards;z-index:2}
+#rkWrongPinOverlay .rk-w-big-x{color:#fff;font-size:50px;font-weight:bold;animation:rkWrongFade .3s ease .5s forwards}
+#rkWrongPinOverlay .rk-w-content{position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;opacity:0;animation:rkWrongShow .3s ease 1.3s forwards;z-index:1}
+#rkWrongPinOverlay .rk-w-circle-box{position:relative;margin-bottom:20px}
+#rkWrongPinOverlay .rk-w-ball{width:75px;height:75px;border-radius:50%;background:#ff3b30;display:grid;place-items:center;color:#fff;font-size:34px;font-weight:bold;transform:scale(0);animation:rkWrongPop .5s cubic-bezier(.175,.885,.32,1.275) 1.3s forwards;box-shadow:0 10px 25px rgba(255,59,48,.3)}
+#rkWrongPinOverlay .rk-w-title{font-size:38px;font-weight:700;color:#ff3b30;letter-spacing:1px;opacity:0;transform:translateY(15px);animation:rkWrongSlide .4s ease 1.5s forwards}
+#rkWrongPinOverlay .rk-w-name{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;opacity:0;transform:translateY(15px);animation:rkWrongSlide .4s ease 1.7s forwards;color:#7b818c;font-size:17px;font-weight:500}
+#rkWrongPinOverlay .rk-w-badge{width:15px;height:15px;border-radius:50%;background:#ff3b30;color:white;font-size:9px;font-weight:bold;display:grid;place-items:center}
+#rkWrongPinOverlay .rk-w-particle{position:absolute;left:50%;top:50%;width:9px;height:9px;border-radius:50%;opacity:0;pointer-events:none;z-index:3}
+@keyframes rkWrongShrink{0%{width:100vw;height:100vh;border-radius:0}100%{width:75px;height:75px;border-radius:50%;transform:translateY(-95px);opacity:0}}
+@keyframes rkWrongFade{to{opacity:0}}
+@keyframes rkWrongShow{to{opacity:1}}
+@keyframes rkWrongPop{0%{transform:scale(0) translateY(30px)}100%{transform:scale(1) translateY(0)}}
+@keyframes rkWrongSlide{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#rkWrongPinOverlay *{animation-duration:.01ms!important;animation-delay:0ms!important}}
+</style>
+
 </head><body><header><div class="wrap"><strong><span aria-hidden="true" class="brand-mark"><svg height="28" viewbox="0 0 40 32" width="34"><path d="M5 21h20l5-8h5l2 8h-4M9 21a5 5 0 1 0 10 0M27 21a5 5 0 1 0 10 0M14 9h9l5 7H12z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.7"></path><path d="M20 4l-3 5h5l-3 5" fill="none" stroke="#e0b400" stroke-linecap="round" stroke-width="2.5"></path></svg></span>RK Foodie Delivery Partner</strong><small>সহজ ডেলিভারি • সহজ হিসাব</small></div></header><main class="wrap"><div class="notice hidden" id="configWarn"></div><section id="authView"><div class="card"><h2>স্বাগতম</h2><p class="muted">লগইন করুন অথবা নতুন পার্টনার হিসেবে আবেদন করুন।</p><div class="tabs"><button onclick="authTab('login')">লগইন</button><button class="secondary" onclick="authTab('signup')">নতুন রেজিস্ট্রেশন</button></div><form id="loginForm"><label>ইমেইল</label><input autocomplete="username" id="loginEmail" required="" type="email"/><label>পাসওয়ার্ড</label><input autocomplete="current-password" id="loginPass" required="" type="password"/><button class="wide">লগইন করুন</button></form><form class="hidden" id="signupForm"><label>পুরো নাম</label><input id="suName" required=""/><label>মোবাইল নম্বর</label><input id="suPhone" inputmode="tel" required=""/><label>ইমেইল</label><input id="suEmail" required="" type="email"/><label>পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর)</label><input id="suPass" minlength="8" required="" type="password"/><label>অ্যাডমিনের দেওয়া Invite Code (না থাকলে ফাঁকা রাখুন)</label><input id="suCode" placeholder="ঐচ্ছিক"/><label>প্রোফাইল ছবি (ঐচ্ছিক)</label><span class="upload-hint">ছবি নির্বাচন করে আপলোড করুন</span><input accept="image/jpeg,image/png" class="blue-upload" id="suAvatar" type="file"/><label>এলাকা / ঠিকানা</label><textarea id="suAddress" rows="2"></textarea><button class="wide">আবেদন জমা দিন</button></form><p class="muted" id="authMsg"></p></div></section>
 <section class="hidden" id="appView"><div aria-live="assertive" class="rk-order-toast hidden" id="rkOrderToast" role="status"><div class="rk-toast-icon">🔔</div><div class="rk-toast-body"><b>নতুন অর্ডার এসেছে!</b><p id="rkOrderToastText">আপনার জন্য নতুন অর্ডার এসেছে।</p></div><button aria-label="বন্ধ করুন" class="rk-toast-close" onclick="dismissOrderToast()" type="button">✕</button></div><div class="card row between partner-card"><div class="partner-head"><button aria-label="মেনু খুলুন" class="menu-btn" onclick="toggleDrawer(true)"><svg fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-width="2.5" viewbox="0 0 24 24" width="22"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button><img alt="Profile" class="avatar-small hidden" id="headerAvatar"/><div><b id="hello">হ্যালো!</b><div class="muted" id="partnerStatus">স্ট্যাটাস যাচাই হচ্ছে</div></div></div></div>
 <div class="drawer-backdrop hidden" id="drawerBackdrop" onclick="toggleDrawer(false)"></div><aside aria-label="পার্টনার মেনু" class="drawer" id="partnerDrawer"><div class="drawer-profile"><div class="row"><img alt="প্রোফাইল ছবি" class="avatar" id="drawerAvatar"/><div><b id="drawerName">পার্টনার</b><div class="muted">Delivery Partner</div></div></div></div><button class="drawer-link" data-pane="home" onclick="drawerPane('home')"><svg viewbox="0 0 24 24"><path d="m3 10 9-7 9 7v10h-6v-7H9v7H3z"></path></svg>হোম পেজ</button><button class="drawer-link active" data-pane="jobs" onclick="drawerPane('jobs')"><svg viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"></path></svg>আমার অর্ডার</button><button class="drawer-link" data-pane="history" onclick="drawerPane('history')"><svg viewbox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"></path></svg>ডেলিভারি হিস্ট্রি</button><button class="drawer-link" data-pane="profile" onclick="drawerPane('profile')"><svg viewbox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>প্রোফাইল</button><button class="drawer-link" data-pane="help" onclick="drawerPane('help')"><svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.6 2.6 0 1 1 4.4 1.9c-1.2 1-1.9 1.3-1.9 3.1M12 17.5h.01"></path></svg>সাহায্য</button><button class="drawer-link" data-pane="ringtone" onclick="drawerPane('ringtone')"><svg viewbox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg>রিংটোন সেটিংস</button><div class="drawer-spacer"></div><button class="drawer-logout" onclick="logout()">লগআউট</button></aside><div class="card notice hidden" id="pendingBox">আপনার আবেদন জমা হয়েছে। অ্যাডমিন অনুমোদন করলে অর্ডার দেখতে ও ডেলিভারি শুরু করতে পারবেন।</div><div class="hidden" id="partnerApp"><section class="rk-full-pane" id="homePane"><div class="card"><div class="row between"><div><b>আপনার কাজের অবস্থা</b><div class="muted">অর্ডার পেতে Online করুন</div></div><button id="onlineBtn" onclick="toggleOnline()">Online</button></div><p class="muted" id="gpsHint">GPS চালু করতে Online চাপুন।</p></div><div class="grid"><div class="stat"><div class="row"><span class="stat-icon"><svg viewbox="0 0 24 24"><path d="M3 4h2l2 11h11l3-8H6M9 19h.01M17 19h.01"></path></svg></span><span class="muted">আজকের ডেলিভারি</span></div><b id="todayCount">0</b></div><div class="stat"><div class="row"><span class="stat-icon"><svg viewbox="0 0 24 24"><rect height="14" rx="2" width="18" x="3" y="6"></rect><path d="M3 9h18M16 14h2"></path></svg></span><span class="muted">মোট আয়</span></div><b id="todayEarn">₹0</b></div><div class="stat"><div class="row"><span class="stat-icon"><svg viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8"></path></svg></span><span class="muted">চলমান অর্ডার</span></div><b id="activeCount">0</b></div><div class="stat"><div class="row"><span class="stat-icon"><svg viewbox="0 0 24 24"><path d="M12 2v20M17 6H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6"></path></svg></span><span class="muted">Cash জমা</span></div><b id="cashDue">₹0</b></div></div><div class="card"><div class="row between"><h3>🏃 চলমান অর্ডার</h3><button class="secondary" onclick="drawerPane('jobs')">সব অর্ডার</button></div><div class="muted" id="homeActiveOrders">অর্ডার লোড হচ্ছে...</div></div></section><div id="jobsPane"><div class="card"><div class="row between"><h3>আমার অর্ডার</h3><button class="secondary" onclick="loadJobs()">রিফ্রেশ</button></div><div class="muted" id="jobsList">অর্ডার লোড হচ্ছে...</div></div></div><section class="rk-screen-pane hidden" id="historyPane"><div class="rk-screen-title">ডেলিভারি হিস্ট্রি</div><div class="card"><h3>সম্পন্ন ডেলিভারি</h3><div id="historyList"></div></div></section><section class="rk-screen-pane hidden" id="profilePane"><div class="rk-screen-title">প্রোফাইল</div><div class="card"><h3>আমার প্রোফাইল</h3><img alt="প্রোফাইল ছবি" class="avatar" id="profileAvatar"/><form id="profileForm"><label>প্রোফাইল ছবি পরিবর্তন</label><span class="upload-hint">ছবি নির্বাচন করে আপলোড করুন</span><input accept="image/jpeg,image/png" class="blue-upload" id="prAvatar" type="file"/><label>নাম</label><input id="prName"/><label>ফোন</label><input id="prPhone"/><label>ঠিকানা</label><textarea id="prAddress"></textarea><button>আপডেট করুন</button></form><p class="muted" id="prMeta"></p></div></section><section class="rk-screen-pane hidden" id="helpPane"><div class="rk-screen-title">সাহায্য</div><div class="card help-card"><div class="help-title"><span class="help-title-icon"><svg viewbox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.7 10.7 6.6-4.4M8.7 13.3l6.6 4.4"></path></svg></span><span>সাহায্য</span></div><svg aria-label="ফোনে যোগাযোগের চিত্র" class="help-art" role="img" viewbox="0 0 320 240"><circle cx="160" cy="119" fill="#edf5ff" r="105"></circle><circle cx="160" cy="119" fill="#f8fbff" r="91" stroke="#d7e8ff" stroke-width="3"></circle><path class="signal-left" d="M75 92q-17 27 0 54M91 101q-10 18 0 36"></path><path class="signal-right" d="M245 92q17 27 0 54M229 101q10 18 0 36"></path><g class="help-phone"><rect fill="#0c3e9e" height="165" rx="18" transform="rotate(5 160 118)" width="98" x="111" y="35"></rect><rect fill="#eaf4ff" height="143" rx="11" transform="rotate(5 160 118)" width="82" x="119" y="45"></rect><rect fill="#8ebaff" height="4" rx="2" transform="rotate(5 160 118)" width="27" x="151" y="51"></rect><path d="M143 102c-7 5-7 17 2 29 9 13 21 22 32 23 7 1 13-5 12-11l-2-8-14-5-7 7c-7-3-13-9-16-16l6-7-6-14-7 2z" fill="#1477f8"></path></g><circle cx="222" cy="166" fill="#0756d9" r="29" stroke="#fff" stroke-width="4"></circle><g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3"><circle cx="213" cy="158" r="3"></circle><circle cx="231" cy="151" r="3"></circle><circle cx="231" cy="174" r="3"></circle><path d="m216 157 12-5m-12 8 12 12"></path></g><path d="M45 207q35-18 64 0t55 0 65 0 46 0" fill="none" stroke="#d6e8ff" stroke-linecap="round" stroke-width="8"></path></svg><p class="help-copy">অর্ডার বা পেমেন্ট সংক্রান্ত কোনো সমস্যা হলে অ্যাডমিনের সঙ্গে যোগাযোগ করুন।</p><a class="support-call" href="tel:+910000000000" id="supportLink"><svg viewbox="0 0 24 24"><path d="M5 3h4l2 5-3 2a16 16 0 0 0 6 6l2-3 5 2v4c0 1-1 2-2 2C10 21 3 14 3 5c0-1 1-2 2-2z"></path></svg><span>সাপোর্ট ফোন</span></a></div>
@@ -160,10 +200,10 @@ async function syncMissingJobItems(rows){
  }catch(err){console.warn('Order item sync failed:',job.order_number,err)}}return rows;
 }
 let rkRenderedJobsSignature='';
-async function loadJobs(){const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent=error.message;return}jobRows=await syncMissingJobItems(data||[]);
+async function loadJobs(){const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent='অর্ডার লোড হয়নি: '+error.message;$('homeActiveOrders').textContent='অর্ডার লোড হয়নি—সংযোগ/অনুমতি পরীক্ষা করুন।';return}jobRows=await syncMissingJobItems(data||[]);
 const signature=JSON.stringify(jobRows.map(j=>[j.id,j.status,j.updated_at,j.customer_name,j.customer_phone,j.delivery_address,j.delivery_landmark,j.customer_lat,j.customer_lng,j.order_total,j.items]));
 const shouldRenderJobs=signature!==rkRenderedJobsSignature;
-const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));if(shouldRenderJobs){Object.values(rkJobMaps).forEach(o=>{try{o.map?.remove()}catch(e){}});rkJobMaps={};$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';rkRenderedJobsSignature=signature;setTimeout(initPartnerJobMaps,180)}const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
+const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('homeActiveOrders').innerHTML=active.length?active.map(jobCard).join(''):'<div class="muted" style="padding:12px 0">এখন কোনো চলমান অর্ডার নেই। নতুন অর্ডার এলে এখানে অটোমেটিক দেখা যাবে।</div>'; $('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));if(shouldRenderJobs){Object.values(rkJobMaps).forEach(o=>{try{o.map?.remove()}catch(e){}});rkJobMaps={};$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';rkRenderedJobsSignature=signature;setTimeout(initPartnerJobMaps,180)}const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jobItemsMarkup(x){const items=slipItems(x);if(!items.length)return '<div class="job-items muted">খাবারের তালিকা অর্ডার রেকর্ড থেকে পাওয়া যায়নি। অর্ডারটি Sync করুন অথবা Admin-কে জানান।</div>';return `<div class="job-items"><b>অর্ডারের খাবার</b><ul>${items.map(i=>`<li>${esc(i.title)} × ${i.quantity} — ${money(i.price*i.quantity)}</li>`).join('')}</ul></div>`}
 function jobCard(x){
@@ -307,7 +347,172 @@ async function approvePartner(id){const {error}=await sb.from('delivery_partner_
 async function loadPartnerOptions(){const {data,error}=await sb.from('delivery_partner_profiles').select('user_id,full_name,partner_code').eq('role','partner').eq('status','approved');$('asPartner').innerHTML=(data||[]).map(x=>`<option value="${x.user_id}">${esc(x.full_name)} (${esc(x.partner_code||'')})</option>`).join('');if(error)msg('assignMsg',error.message,'error')}
 $('assignForm').onsubmit=async e=>{e.preventDefault();const partner=$('asPartner').value,order=$('asOrder').value.trim();const {data:ord,error:oe}=await sb.from('orders').select('*').eq('order_number',order).maybeSingle();if(oe||!ord)return msg('assignMsg',oe?.message||'Order পাওয়া যায়নি','error');const {error}=await sb.from('delivery_partner_jobs').insert({order_number:order,partner_id:partner,assigned_by:user.id,status:'assigned',customer_name:ord.customer_name||ord.name||'',customer_phone:ord.phone||ord.customer_phone||'',delivery_address:ord.address||ord.delivery_address||ord.customer_address||'',delivery_landmark:ord.landmark||ord.delivery_landmark||ord.customer_landmark||'',customer_lat:ord.customer_lat??null,customer_lng:ord.customer_lng??null,order_total:ord.total||ord.total_amount||0,payment_mode:ord.payment_method||ord.payment_mode||'',items:normalizeOrderItems(ord.items),created_at:ord.created_at||new Date().toISOString(),delivery_fee:0});if(error){msg('assignMsg',error.message,'error');return}const {error:statusError}=await sb.from('orders').update({status:'assigned'}).eq('order_number',order);msg('assignMsg',statusError?'পার্টনার Job তৈরি হয়েছে, কিন্তু Orders status sync হয়নি: '+statusError.message:'অর্ডার Assign হয়েছে এবং Orders status assigned করা হয়েছে',statusError?'error':'success');loadAdmin()};
 $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.randomUUID().replaceAll('-','').slice(0,10).toUpperCase();const {error}=await sb.from('delivery_partner_invites').insert({email:$('ivEmail').value.trim().toLowerCase(),code,created_by:user.id});if(error)return msg('inviteResult',error.message,'error');$('inviteResult').innerHTML='<div class="notice">Invite Code: <b>'+esc(code)+'</b><br>কোডটি পার্টনারকে ব্যক্তিগতভাবে দিন। একবার ব্যবহারযোগ্য।</div>'};
-</script><script id="rk-partner-pin-status-and-navigation-fix">
+</script>
+<div id="rkWrongPinOverlay" aria-live="assertive" aria-label="ভুল PIN">
+  <div class="rk-w-circle-wrap"><div class="rk-w-big-x">✕</div></div>
+  <div class="rk-w-content">
+    <div class="rk-w-circle-box"><div class="rk-w-ball">✕</div></div>
+    <div class="rk-w-title">Error</div>
+    <div class="rk-w-name"><span>Rk Foodie</span><span class="rk-w-badge">✕</span></div>
+  </div>
+</div>
+<div id="rkVerifyOverlay" aria-live="polite"><div class="rk-v-circle-wrap"><div class="rk-v-bigcheck">✓</div></div><div class="rk-v-content"><div class="rk-v-circle-box"><div class="rk-v-ball"><span>✓</span></div></div><div class="rk-v-amount">+25</div><div class="rk-v-name"><span>Rk Foodie</span><span class="rk-v-badge">✓</span></div></div></div>
+<script id="rk-verify-animation-script">
+let rkVerifyAutoTimer=null;
+let rkVerifySoundTimer=null;
+let rkVerifyConfettiTimer=null;
+function rkVerifySound(){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  const ctx=new AC();
+  const now=ctx.currentTime;
+  const osc1=ctx.createOscillator();
+  const gain1=ctx.createGain();
+  osc1.type='sine';
+  osc1.frequency.setValueAtTime(523.25,now);
+  osc1.frequency.exponentialRampToValueAtTime(1046.50,now+.4);
+  gain1.gain.setValueAtTime(.6,now);
+  gain1.gain.exponentialRampToValueAtTime(.001,now+2.0);
+  osc1.connect(gain1);gain1.connect(ctx.destination);
+  const osc2=ctx.createOscillator();
+  const gain2=ctx.createGain();
+  osc2.type='triangle';
+  osc2.frequency.setValueAtTime(659.25,now+.15);
+  osc2.frequency.exponentialRampToValueAtTime(1318.51,now+.6);
+  gain2.gain.setValueAtTime(.5,now+.15);
+  gain2.gain.exponentialRampToValueAtTime(.001,now+2.2);
+  osc2.connect(gain2);gain2.connect(ctx.destination);
+  const resumePromise=ctx.resume?ctx.resume():Promise.resolve();
+  Promise.resolve(resumePromise).then(()=>{
+   osc1.start(ctx.currentTime);
+   osc2.start(ctx.currentTime+.15);
+   osc1.stop(ctx.currentTime+2.0);
+   osc2.stop(ctx.currentTime+2.2);
+  }).catch(()=>{});
+  setTimeout(()=>ctx.close().catch(()=>{}),2600);
+ }catch(e){console.warn('verify audio',e)}
+}
+function rkVerifyConfetti(){
+ const circleBox=document.querySelector('#rkVerifyOverlay .rk-v-circle-box');
+ if(!circleBox)return;
+ const colors=['#00c853','#0095ff','#ffbc00','#ff4081','#7c4dff','#00e5ff'];
+ for(let i=0;i<40;i++){
+  const particle=document.createElement('div');
+  particle.className='rk-v-confetti';
+  particle.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+  const angle=(Math.random()>.5?1:-1)*(Math.random()*75+15);
+  const distance=Math.random()*150+80;
+  const x=Math.sin(angle*Math.PI/180)*distance;
+  const y=-Math.cos(angle*Math.PI/180)*distance;
+  circleBox.appendChild(particle);
+  particle.animate([
+   {transform:'translate(-50%,-50%) scale(1)',opacity:1},
+   {transform:`translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(.4)`,opacity:0}
+  ],{duration:1800+Math.random()*400,easing:'cubic-bezier(.08,.82,.17,1)',fill:'forwards'});
+  setTimeout(()=>particle.remove(),2400);
+ }
+}
+function showVerifyAnimation(){
+ const overlay=document.getElementById('rkVerifyOverlay');
+ if(!overlay)return;
+ clearTimeout(rkVerifyAutoTimer);
+ clearTimeout(rkVerifySoundTimer);
+ clearTimeout(rkVerifyConfettiTimer);
+ overlay.querySelectorAll('.rk-v-confetti').forEach(p=>p.remove());
+ overlay.classList.remove('show');
+ overlay.style.display='flex';
+ void overlay.offsetWidth;
+ overlay.classList.add('show');
+ rkVerifySoundTimer=setTimeout(rkVerifySound,1300);
+ rkVerifyConfettiTimer=setTimeout(rkVerifyConfetti,1300);
+ rkVerifyAutoTimer=setTimeout(()=>{
+  overlay.classList.remove('show');
+  overlay.style.display='none';
+  overlay.querySelectorAll('.rk-v-confetti').forEach(p=>p.remove());
+ },3700);
+}
+function closeVerifyAnimation(){
+ const overlay=document.getElementById('rkVerifyOverlay');
+ if(!overlay)return;
+ overlay.classList.remove('show');
+ overlay.style.display='none';
+ clearTimeout(rkVerifyAutoTimer);
+ clearTimeout(rkVerifySoundTimer);
+ clearTimeout(rkVerifyConfettiTimer);
+ overlay.querySelectorAll('.rk-v-confetti').forEach(p=>p.remove());
+}
+let rkWrongPinTimer=null;
+function rkWrongPinSound(){
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  const ctx=new AC();
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  const startAt=ctx.currentTime+1.3;
+  osc.type='sawtooth';
+  osc.frequency.setValueAtTime(300,startAt);
+  osc.frequency.exponentialRampToValueAtTime(120,startAt+.4);
+  gain.gain.setValueAtTime(.5,startAt);
+  gain.gain.exponentialRampToValueAtTime(.001,startAt+.6);
+  osc.connect(gain);gain.connect(ctx.destination);
+  if(ctx.resume)ctx.resume().catch(()=>{});
+  osc.start(startAt);osc.stop(startAt+.6);
+  setTimeout(()=>ctx.close().catch(()=>{}),2200);
+ }catch(e){console.warn('Wrong PIN sound:',e)}
+}
+function rkWrongPinParticles(){
+ const box=document.querySelector('#rkWrongPinOverlay .rk-w-circle-box');
+ if(!box)return;
+ const colors=['#ff3b30','#c62828','#e57373','#7b818c'];
+ for(let i=0;i<30;i++){
+  const p=document.createElement('i');p.className='rk-w-particle';
+  p.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
+  const angle=(Math.random()>.5?1:-1)*(Math.random()*75+15);
+  const distance=Math.random()*120+50;
+  const x=Math.sin(angle*Math.PI/180)*distance;
+  const y=-Math.cos(angle*Math.PI/180)*distance;
+  box.appendChild(p);
+  p.animate([
+   {transform:'translate(-50%,-50%) scale(1)',opacity:1},
+   {transform:`translate(calc(-50% + ${x}px),calc(-50% + ${y}px)) scale(.2)`,opacity:0}
+  ],{duration:1200+Math.random()*300,easing:'cubic-bezier(.1,.8,.3,1)',fill:'forwards'});
+  setTimeout(()=>p.remove(),1700);
+ }
+}
+function showWrongPinAnimation(){
+ const input=document.getElementById('rkDeliveryPinInput');
+ const err=document.getElementById('rkDeliveryPinError');
+ const overlay=document.getElementById('rkWrongPinOverlay');
+ if(!input||!err||!overlay)return Promise.resolve();
+ clearTimeout(rkWrongPinTimer);
+ overlay.innerHTML=`
+  <div class="rk-w-circle-wrap"><div class="rk-w-big-x">✕</div></div>
+  <div class="rk-w-content">
+   <div class="rk-w-circle-box"><div class="rk-w-ball">✕</div></div>
+   <div class="rk-w-title">Error</div>
+   <div class="rk-w-name"><span>Rk Foodie</span><span class="rk-w-badge">✕</span></div>
+  </div>`;
+ overlay.classList.remove('rk-wrong-show');
+ overlay.style.display='flex';
+ void overlay.offsetWidth;
+ overlay.classList.add('rk-wrong-show');
+ rkWrongPinSound();
+ setTimeout(rkWrongPinParticles,1300);
+ err.textContent='';
+ return new Promise(resolve=>{
+  rkWrongPinTimer=setTimeout(()=>{
+   overlay.classList.remove('rk-wrong-show');
+   overlay.style.display='none';
+   input.value='';
+   err.textContent='✕ PIN ভুল হয়েছে। আবার সঠিক ৪ ডিজিট PIN দিন।';
+   err.style.color='#dc2626';
+   input.focus();
+   resolve();
+  },3000);
+ });
+}
+</script>
+<script id="rk-partner-pin-status-and-navigation-fix">
 (function(){
  'use strict';
  let pinModal=null,pinResolver=null;
@@ -337,19 +542,33 @@ $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.ran
  }
  async function askDeliveryPin(){return ensurePinModal()._open()}
  window.jobAction=async function(id,status){
-  if(!window.sb&&!sb){alert('Supabase সংযোগ পাওয়া যায়নি।');return}
+  if(!sb){alert('Supabase সংযোগ পাওয়া যায়নি।');return}
   if(!['accepted','picked_up','delivered'].includes(String(status))){alert('এই স্ট্যাটাস পরিবর্তনটি অনুমোদিত নয়।');return}
-  let pin=null;
-  if(status==='delivered'){pin=await askDeliveryPin();if(pin===null)return}
-  const buttons=[...document.querySelectorAll(`button[onclick*="jobAction('${String(id).replace(/'/g,"\\'")}"]`)];
+  const buttons=[...document.querySelectorAll(`button[onclick*="jobAction('${String(id).replace(/'/g,"\\'")}"`)];
   buttons.forEach(b=>{b.disabled=true;b.dataset.rkBusy='1'});
   try{
-   // The database RPC validates the PIN and updates both tables in one transaction.
-   const {data,error}=await sb.rpc('partner_update_order_status',{p_job_id:String(id),p_status:String(status),p_delivery_pin:pin});
-   if(error)throw error;
-   if(data&&data.success===false){if(data.code==='invalid_pin')throw new Error('PIN সঠিক নয়। কাস্টমারের কাছ থেকে আবার PIN নিয়ে চেষ্টা করুন।');if(data.code==='invalid_transition')throw new Error('এই অর্ডারের বর্তমান স্ট্যাটাস থেকে এই পরিবর্তন করা যাবে না।');throw new Error(data.message||'অর্ডার স্ট্যাটাস আপডেট হয়নি।')}
+   let result;
+   if(status==='delivered'){
+    while(true){
+     const pin=await askDeliveryPin();if(pin===null)return;
+     result=await sb.rpc('partner_update_order_status',{p_job_id:String(id),p_status:'delivered',p_delivery_pin:pin});
+     if(result.error)throw result.error;
+     if(result.data?.success===false&&result.data.code==='invalid_pin'){
+      await showWrongPinAnimation();continue;
+     }
+     if(result.data?.success===false)throw new Error(result.data.message||'অর্ডার স্ট্যাটাস আপডেট হয়নি।');
+     break;
+    }
+    // পার্টনারের ডেলিভারি চার্জ নির্দিষ্ট ২৫ টাকা
+    const {error:feeError}=await sb.from('delivery_partner_jobs').update({delivery_fee:25}).eq('id',String(id)).eq('partner_id',user.id);
+    if(feeError)console.warn('২৫ টাকা delivery fee update হয়নি:',feeError.message);
+   }else{
+    result=await sb.rpc('partner_update_order_status',{p_job_id:String(id),p_status:String(status),p_delivery_pin:null});
+    if(result.error)throw result.error;
+    if(result.data?.success===false)throw new Error(result.data.message||'অর্ডার স্ট্যাটাস আপডেট হয়নি।');
+   }
    await loadJobs();
-   if(status==='delivered'){showPane('history');alert('PIN সঠিক। ডেলিভারি সম্পন্ন হয়েছে এবং অর্ডারের স্ট্যাটাস Supabase-এ আপডেট হয়েছে।')}
+   if(status==='delivered'){showPane('history');showVerifyAnimation()}
   }catch(err){console.error('RK Foodie partner status update:',err);alert('স্ট্যাটাস আপডেট হয়নি: '+(err.message||err)+'\nSupabase SQL setup চালানো হয়েছে কি না যাচাই করুন।')}
   finally{buttons.forEach(b=>{b.disabled=false;delete b.dataset.rkBusy})}
  };
