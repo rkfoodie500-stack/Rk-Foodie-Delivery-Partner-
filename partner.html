@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2563eb"><title>RK Foodie Delivery Partner</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="data:,"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2563eb"><title>RK Foodie Delivery Partner</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="data:,"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>*{box-sizing:border-box}body{margin:0;background:#f5f9ff;color:#172033;font-family:system-ui,-apple-system,'Noto Sans Bengali',sans-serif}header{background:#ffffff;color:#174ea6;padding:18px 16px;border-bottom:1px solid #dbeafe;position:sticky;top:0;z-index:5;box-shadow:0 2px 12px #0002}header strong{font-size:20px}header small{display:block;opacity:.9}.wrap{max-width:760px;margin:auto;padding:14px}.card{background:white;border-radius:17px;padding:16px;margin:12px 0;box-shadow:0 3px 15px #15243a0c}.hidden{display:none!important}.muted{color:#64748b;font-size:13px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:#eff6ff;border-radius:14px;padding:13px}.stat b{display:block;font-size:23px;color:#1d4ed8}button{border:0;border-radius:12px;padding:13px 16px;background:linear-gradient(180deg,#4f8df7 0%,#2563eb 100%);color:white;font-weight:700;box-shadow:0 3px 0 #1d4ed8,0 5px 12px #2563eb30;transition:transform .12s,box-shadow .12s;font-size:15px;cursor:pointer}button.secondary{background:linear-gradient(180deg,#fff 0%,#eaf2ff 100%);color:#1e40af;border:1px solid #c7dcff;box-shadow:0 2px 0 #cbdcf5,0 4px 10px #1e40af12}button.danger{background:linear-gradient(180deg,#f87171 0%,#dc2626 100%);box-shadow:0 3px 0 #b91c1c,0 5px 12px #dc262630}button:disabled{opacity:.45}button:active{transform:translateY(2px);filter:saturate(1.12)}button.active{background:linear-gradient(180deg,#3b82f6 0%,#1d4ed8 100%);color:#fff;border-color:#1d4ed8;box-shadow:0 3px 0 #1e40af,0 5px 12px #2563eb35}input,select,textarea{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:11px;font:inherit;margin:5px 0 12px;background:white}label{font-weight:650;font-size:14px}.tabs{display:flex;gap:7px;overflow:auto;padding:8px 0}.tabs button{white-space:nowrap;padding:10px 12px;font-size:13px}.pill{display:inline-block;padding:5px 9px;border-radius:30px;background:#dcfce7;color:#166534;font-size:12px;font-weight:700}.order{border:1px solid #e2e8f0;border-radius:14px;padding:13px;margin:10px 0}.order h3{margin:0 0 6px}.wide{width:100%}.notice{padding:12px;background:#eff6ff;border-radius:12px;color:#1e40af;font-size:13px}.error{color:#b91c1c}.success{color:#15803d}.topspace{margin-top:10px}footer{text-align:center;color:#94a3b8;padding:20px;font-size:12px}@media(min-width:650px){.grid{grid-template-columns:repeat(4,1fr)}}
 
 .partner-head{display:flex;align-items:center;gap:12px}.menu-btn{width:44px;min-width:44px;padding:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #dbeafe;box-shadow:0 2px 0 #d4e3fb}
@@ -44,7 +44,7 @@ input[type=file].blue-upload::file-selector-button{display:block;margin:0 auto 9
 @media(prefers-reduced-motion:reduce){.help-phone,.signal-left,.signal-right{animation:none}}
 
 
-.slip-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.slip-actions button{flex:1;min-width:120px}.job-items{background:#f8fbff;border:1px solid #e3edfb;border-radius:10px;padding:10px;margin:10px 0}.job-items ul{margin:7px 0 0;padding-left:20px}.ringtone-note{font-size:12px;color:#64748b;line-height:1.55}.new-order-alert{animation:newOrderGlow 1.4s ease-in-out 2}@keyframes newOrderGlow{50%{box-shadow:0 0 0 4px #93c5fd,0 6px 20px #2563eb25}}
+.rk-map-wrap{position:relative;margin:12px 0}.rk-mini-map{height:245px;width:100%;border-radius:14px;border:1px solid #dbeafe;overflow:hidden;background:#eaf2ff}.rk-map-refresh{position:absolute;right:10px;top:10px;z-index:500;padding:8px 11px;border-radius:10px;font-size:13px;box-shadow:0 2px 8px #0003}.rk-map-note{font-size:12px;color:#64748b;margin:5px 0 0}.slip-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.slip-actions button{flex:1;min-width:120px}.job-items{background:#f8fbff;border:1px solid #e3edfb;border-radius:10px;padding:10px;margin:10px 0}.job-items ul{margin:7px 0 0;padding-left:20px}.ringtone-note{font-size:12px;color:#64748b;line-height:1.55}.new-order-alert{animation:newOrderGlow 1.4s ease-in-out 2}@keyframes newOrderGlow{50%{box-shadow:0 0 0 4px #93c5fd,0 6px 20px #2563eb25}}
 
 .rk-order-toast{position:fixed;top:12px;left:12px;right:12px;z-index:9999;max-width:680px;margin:0 auto;background:#fff;border:2px solid #2563eb;border-left:7px solid #0756d9;border-radius:16px;box-shadow:0 12px 35px #0f172a35;padding:14px 15px;display:flex;gap:12px;align-items:flex-start;animation:rkToastIn .25s ease-out}
 .rk-order-toast.hidden{display:none!important}.rk-toast-icon{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:#dbeafe;font-size:23px}.rk-toast-body{flex:1;min-width:0}.rk-toast-body b{display:block;color:#123e91;font-size:16px}.rk-toast-body p{margin:4px 0 0;color:#334155;font-size:13px;line-height:1.45;overflow-wrap:anywhere}.rk-toast-close{padding:7px 10px!important;min-width:38px;background:#eff6ff!important;color:#1d4ed8!important;box-shadow:none!important;border:1px solid #bfdbfe!important}
@@ -130,7 +130,7 @@ async function syncMissingJobItems(rows){
   const {error:updateError}=await sb.from('delivery_partner_jobs').update(patch).eq('id',job.id).eq('partner_id',user.id);if(!updateError)Object.assign(job,patch);
  }catch(err){console.warn('Order item sync failed:',job.order_number,err)}}return rows;
 }
-async function loadJobs(){const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent=error.message;return}jobRows=await syncMissingJobItems(data||[]);const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
+async function loadJobs(){const {data,error}=await sb.from('delivery_partner_jobs').select('*').eq('partner_id',user.id).order('created_at',{ascending:false});if(error){$('jobsList').textContent=error.message;return}jobRows=await syncMissingJobItems(data||[]);const incoming=jobRows.filter(x=>x.status==='assigned'&&!knownOrderIds.has(String(x.id)));if(ordersInitialized&&incoming.length){showOrderToast(incoming[0]);$('jobsPane').querySelector('.card')?.classList.add('new-order-alert');playOrderRingtone();setTimeout(()=>$('jobsPane').querySelector('.card')?.classList.remove('new-order-alert'),3000)}knownOrderIds=new Set(jobRows.map(x=>String(x.id)));ordersInitialized=true;const active=jobRows.filter(x=>!['delivered','cancelled'].includes(x.status));$('activeCount').textContent=active.length;$('todayCount').textContent=jobRows.filter(x=>x.status==='delivered'&&new Date(x.updated_at).toDateString()===new Date().toDateString()).length;$('todayEarn').textContent=money(jobRows.filter(x=>x.status==='delivered').reduce((s,x)=>s+Number(x.delivery_fee||0),0));$('cashDue').textContent=money(jobRows.filter(x=>x.status==='delivered'&&x.payment_mode==='cash'&&!x.cash_settled).reduce((s,x)=>s+Number(x.order_total||0),0));$('jobsList').innerHTML=active.length?active.map(jobCard).join(''):'এখন কোনো চলমান অর্ডার নেই।';setTimeout(initPartnerJobMaps,100);const done=jobRows.filter(x=>x.status==='delivered');$('historyList').innerHTML=done.length?done.map(x=>`<div class="order"><b>${esc(x.order_number)}</b><div>${esc(x.customer_name||'Customer')} • ${money(x.delivery_fee)}</div><small>${new Date(x.updated_at).toLocaleString('bn-IN')}</small><div class="slip-actions"><button onclick="printJobSlip('${x.id}')">স্লিপ প্রিন্ট</button><button class="secondary" onclick="shareJobSlip('${x.id}')">WhatsApp-এ শেয়ার</button></div></div>`).join(''):'এখনও ডেলিভারি সম্পন্ন হয়নি।'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jobItemsMarkup(x){const items=slipItems(x);if(!items.length)return '<div class="job-items muted">খাবারের তালিকা অর্ডার রেকর্ড থেকে পাওয়া যায়নি। অর্ডারটি Sync করুন অথবা Admin-কে জানান।</div>';return `<div class="job-items"><b>অর্ডারের খাবার</b><ul>${items.map(i=>`<li>${esc(i.title)} × ${i.quantity} — ${money(i.price*i.quantity)}</li>`).join('')}</ul></div>`}
 function jobCard(x){
@@ -147,12 +147,44 @@ function jobCard(x){
  <p style="font-size:16px;margin:8px 0;color:#334155"><b>☎</b> ${esc(x.customer_phone||'ফোন নম্বর নেই')}</p>
  <p style="font-size:15px;line-height:1.65;margin:8px 0"><b>📍 সম্পূর্ণ ঠিকানা:</b><br>${esc(x.delivery_address||'ঠিকানা নেই')}</p>
  ${landmark?`<p style="font-size:15px;margin:8px 0"><b>🗺️ Landmark:</b> ${esc(landmark)}</p>`:''}
- <button type="button" class="rk-google-nav wide" onclick="navigateTo('${x.id}')">📍 গুগল ম্যাপে সঠিক রুট দেখুন</button>
- <small class="muted" style="display:block;margin-top:8px">${gps?'GPS Coordinates যাচাই করা আছে':'GPS নেই—ঠিকানা fallback হিসেবে ব্যবহার হবে'}</small>
+ <button type="button" class="secondary wide" style="margin-top:8px" onclick="searchAreaInGoogle('${x.id}')">🗺️ গ্রামের / এলাকার নাম Google Maps-এ সার্চ</button>
+ <div class="rk-map-wrap"><button type="button" class="rk-map-refresh" title="ম্যাপ রিফ্রেশ" onclick="refreshPartnerMap('${x.id}')">🔄</button><div id="rk-map-${esc(x.id)}" class="rk-mini-map" data-job-map="${esc(x.id)}"></div></div><small class="rk-map-note">📍 কাস্টমার ও পার্টনারের লোকেশন</small><small class="muted" style="display:block;margin-top:8px">${gps?'GPS Coordinates যাচাই করা আছে':'GPS নেই—ঠিকানা fallback হিসেবে ব্যবহার হবে'}</small>
  </div>
  ${jobItemsMarkup(x)}<div class="row between"><b>মোট: ${money(x.order_total)}</b><span class="muted">${esc(x.payment_mode||'')}</span></div><div class="row between"><b>ডেলিভারি চার্জ: ${money(x.delivery_fee)}</b></div><div class="row topspace">${actions}</div></div>`;
 }
 
+// Leaflet/OpenStreetMap customer + live partner maps
+let rkPartnerGps=null,rkPartnerWatch=null,rkJobMaps={};
+function initPartnerJobMaps(){
+ if(typeof L==='undefined')return;
+ document.querySelectorAll('[data-job-map]').forEach(el=>{
+  const id=el.dataset.jobMap,job=(jobRows||[]).find(j=>String(j.id)===String(id));if(!job)return;
+  let obj=rkJobMaps[id];
+  if(obj&&obj.map){updatePartnerMap(id,job,false);setTimeout(()=>obj.map.invalidateSize(),80);return}
+  const map=L.map(el,{zoomControl:true,scrollWheelZoom:false}).setView([23.5,87.3],10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+  obj=rkJobMaps[id]={map,customerMarker:null,partnerMarker:null};
+  updatePartnerMap(id,job,true);setTimeout(()=>map.invalidateSize(),150);
+ });
+}
+function updatePartnerMap(id,job,fit=true){
+ const o=rkJobMaps[id];if(!o||!o.map)return;const map=o.map;
+ const c={lat:Number(job.customer_lat),lng:Number(job.customer_lng)};
+ const address=[job.customer_area||job.village||job.locality||job.city||job.district,job.delivery_address||job.address,job.delivery_landmark||job.landmark].filter(Boolean).join(', ')||'কাস্টমার ঠিকানা';
+ if(rkValidPoint(c)){
+  if(o.customerMarker)o.customerMarker.setLatLng([c.lat,c.lng]);
+  else o.customerMarker=L.marker([c.lat,c.lng]).addTo(map);
+  o.customerMarker.bindPopup('<b>📍 কাস্টমার</b><br>'+esc(address)).bindTooltip(address,{permanent:true,direction:'top',className:'rk-customer-label'});
+ }else if(o.customerMarker){map.removeLayer(o.customerMarker);o.customerMarker=null}
+ if(rkValidPoint(rkPartnerGps)){
+  if(o.partnerMarker)o.partnerMarker.setLatLng([rkPartnerGps.lat,rkPartnerGps.lng]);
+  else o.partnerMarker=L.marker([rkPartnerGps.lat,rkPartnerGps.lng]).addTo(map);
+  o.partnerMarker.bindPopup('🛵 পার্টনারের লাইভ লোকেশন');
+ }
+ if(fit){const pts=[];if(o.customerMarker)pts.push(o.customerMarker);if(o.partnerMarker)pts.push(o.partnerMarker);if(pts.length)map.fitBounds(L.featureGroup(pts).getBounds().pad(.22),{maxZoom:15});}
+}
+window.refreshPartnerMap=function(id){const job=(jobRows||[]).find(j=>String(j.id)===String(id));if(!job)return;const o=rkJobMaps[id];if(!o||!o.map){initPartnerJobMaps();return}updatePartnerMap(id,job,true);o.map.invalidateSize();};
+function startPartnerLiveGps(){if(!navigator.geolocation||rkPartnerWatch!==null)return;rkPartnerWatch=navigator.geolocation.watchPosition(pos=>{rkPartnerGps={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy};Object.values(rkJobMaps).forEach(o=>{if(!o.map||!rkValidPoint(rkPartnerGps))return;if(o.partnerMarker)o.partnerMarker.setLatLng([rkPartnerGps.lat,rkPartnerGps.lng]);else o.partnerMarker=L.marker([rkPartnerGps.lat,rkPartnerGps.lng]).addTo(o.map).bindPopup('🛵 পার্টনারের লাইভ লোকেশন')})},err=>console.warn('Partner GPS:',err.message),{enableHighAccuracy:true,maximumAge:5000,timeout:15000})}startPartnerLiveGps();
 function slipDate(x){return new Date(x.created_at||x.updated_at||Date.now()).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true})}
 function normalizeOrderItems(raw){
  if(typeof raw==='string'){try{raw=JSON.parse(raw)}catch(e){return []}}
@@ -288,23 +320,14 @@ $('inviteForm').onsubmit=async e=>{e.preventDefault();const code='RK'+crypto.ran
   }catch(err){console.error('RK Foodie partner status update:',err);alert('স্ট্যাটাস আপডেট হয়নি: '+(err.message||err)+'\nSupabase SQL setup চালানো হয়েছে কি না যাচাই করুন।')}
   finally{buttons.forEach(b=>{b.disabled=false;delete b.dataset.rkBusy})}
  };
+ window.searchAreaInGoogle=async function(jobId){const job=(jobRows||[]).find(x=>String(x.id)===String(jobId));if(!job)return alert('অর্ডারটি পাওয়া যায়নি।');let address=job.delivery_address||job.address||'',landmark=job.delivery_landmark||job.landmark||'',area=job.customer_area||job.village||job.locality||job.city||job.district||'';const {data:order}=await sb.from('orders').select('*').eq('order_number',job.order_number).maybeSingle();if(order){address=order.address||order.delivery_address||order.customer_address||address;landmark=order.landmark||order.delivery_landmark||order.customer_landmark||landmark;area=order.customer_area||order.village||order.locality||order.city||order.district||area}const q=[area,address,landmark].filter(Boolean).join(', ').trim();if(!q)return alert('গ্রাম/এলাকার নাম বা ঠিকানা ডাটাবেজে নেই।');window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q),'_blank','noopener')};
  window.navigateTo=async function(jobId){
-   const job=(jobRows||[]).find(x=>String(x.id)===String(jobId));
-   if(!job){alert('অর্ডারটি পাওয়া যায়নি।');return}
-   let customer={lat:Number(job.customer_lat),lng:Number(job.customer_lng)};
-   let address=job.delivery_address||job.address||'',landmark=job.delivery_landmark||job.landmark||'';
-   if(!rkValidPoint(customer)){
-    const {data:order,error}=await sb.from('orders').select('customer_lat,customer_lng,address,delivery_address,customer_address,landmark,delivery_landmark,customer_landmark').eq('order_number',job.order_number).maybeSingle();
-    if(error){alert('কাস্টমারের GPS লোড হয়নি: '+error.message);return}
-    if(order){customer={lat:Number(order.customer_lat),lng:Number(order.customer_lng)};address=order.address||order.delivery_address||order.customer_address||address;landmark=order.landmark||order.delivery_landmark||order.customer_landmark||landmark}
-   }
-   if(rkValidPoint(customer)){
-    const url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(`${customer.lat},${customer.lng}`)+'&travelmode=driving';
-    window.open(url,'_blank','noopener');return;
-   }
-   const fallback=[address,landmark].filter(Boolean).join(', ');
-   if(!fallback){alert('এই অর্ডারে customer_lat/customer_lng বা ঠিকানা নেই। Supabase অর্ডার ডেটা যাচাই করুন।');return}
-   window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(fallback)+'&travelmode=driving','_blank','noopener');
+   const job=(jobRows||[]).find(x=>String(x.id)===String(jobId));if(!job){alert('অর্ডারটি পাওয়া যায়নি।');return}
+   let customer={lat:Number(job.customer_lat),lng:Number(job.customer_lng)},address=job.delivery_address||job.address||'',landmark=job.delivery_landmark||job.landmark||'',area=job.customer_area||job.village||job.locality||job.city||'';
+   if(!rkValidPoint(customer)||!address||!area){const {data:order,error}=await sb.from('orders').select('*').eq('order_number',job.order_number).maybeSingle();if(error)console.warn('Order GPS lookup:',error.message);if(order){if(!rkValidPoint(customer))customer={lat:Number(order.customer_lat),lng:Number(order.customer_lng)};address=order.address||order.delivery_address||order.customer_address||address;landmark=order.landmark||order.delivery_landmark||order.customer_landmark||landmark;area=order.customer_area||order.village||order.locality||order.city||order.district||area}}
+   if(rkValidPoint(customer)){window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(customer.lat+','+customer.lng)+'&travelmode=driving','_blank','noopener');return}
+   const query=[address,landmark,area].filter(Boolean).join(', ').trim();if(!query){alert('GPS বা গ্রামের/এলাকার ঠিকানা পাওয়া যায়নি। Customer website-এ লোকেশন সেভ করুন।');return}
+   window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query),'_blank','noopener');
   };
 })();
 </script>
